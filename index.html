@@ -34,6 +34,9 @@
         <span>MediKey</span>
       </div>
 
+      <!-- Realtime Feedback / Rate Limit Alert Banner -->
+      <div id="authAlertBanner" class="auth-alert-banner hidden" role="alert"></div>
+
       <!-- Registration Panel -->
       <div id="registerPanel">
         <h1>Create your account</h1>
@@ -89,6 +92,19 @@
         <div class="auth-links">
           <button class="link" id="forgotBtn" type="button">Forgot password?</button>
           <button class="link" id="showRegister" type="button">Create account</button>
+        </div>
+
+        <!-- Dedicated Pre-verified Demo Account for Reviewers -->
+        <div class="demo-account-box" style="margin-top: 16px; padding: 12px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+            <span style="font-size: 0.78rem; font-weight: 700; color: #0284c7; text-transform: uppercase; letter-spacing: 0.5px;">🧪 Verified Demo Account</span>
+          </div>
+          <p class="muted" style="margin: 0 0 8px; font-size: 0.78rem;">
+            Instant pre-verified patient access without waiting for SMTP email confirmation:
+          </p>
+          <button class="btn secondary full" id="btnFillDemoCreds" type="button" style="font-size: 0.8rem; padding: 6px 10px;">
+            Fill Demo Credentials (demo.patient@medikey.local)
+          </button>
         </div>
       </div>
 

@@ -9,6 +9,8 @@ import {
   getCurrentUser,
   setCurrentUser,
   showAuthScreen,
+  showAuthAlert,
+  hideAuthAlert,
   getSessionUser,
   registerUser,
   loginUser,
@@ -121,10 +123,41 @@ function handleUrlRouting() {
 // ----------------------------------------------------------------------------
 // Event Listeners & Interactive Routing
 // ----------------------------------------------------------------------------
+// Rate Limit & Cooldown State Management
+// ----------------------------------------------------------------------------
+let isAuthProcessing = false;
+let authCooldownTimer = null;
+
+function startButtonCooldown(btn, originalText, seconds = 60) {
+  if (!btn) return;
+  if (authCooldownTimer) clearInterval(authCooldownTimer);
+
+  let remaining = seconds;
+  btn.disabled = true;
+  btn.textContent = `Please wait (${remaining}s)...`;
+
+  authCooldownTimer = setInterval(() => {
+    remaining--;
+    if (remaining <= 0) {
+      clearInterval(authCooldownTimer);
+      authCooldownTimer = null;
+      btn.disabled = false;
+      btn.textContent = originalText;
+    } else {
+      btn.textContent = `Please wait (${remaining}s)...`;
+    }
+  }, 1000);
+}
+
+// ----------------------------------------------------------------------------
+// Event Listeners & Interactive Routing
+// ----------------------------------------------------------------------------
 function initEventListeners() {
   // --- Auth Forms ---
   $('#registerForm').addEventListener('submit', async e => {
     e.preventDefault();
+    if (isAuthProcessing) return; // Prevent duplicate concurrent submissions
+
     const name = $('#regName').value.trim();
     const email = $('#regEmail').value.trim().toLowerCase();
     const pw = $('#regPassword').value;
@@ -137,8 +170,10 @@ function initEventListeners() {
     if (pw !== confirm) return toast('Passwords do not match.');
 
     const btn = $('#registerForm button[type="submit"]');
+    isAuthProcessing = true;
     btn.disabled = true;
     btn.textContent = 'Registering...';
+    hideAuthAlert();
 
     try {
       const res = await registerUser(name, email, pw, lang);
@@ -148,22 +183,61 @@ function initEventListeners() {
       }
       $('#registerForm').reset();
     } catch (err) {
-      toast(err.message || 'Registration failed.');
+      console.warn('Registration attempt failed:', err);
+
+      if (err.isRateLimit) {
+        showAuthAlert(
+          'Too many email requests. Please try again later.',
+          'warning',
+          '<button id="alertBtnSwitchLogin" type="button">Sign in with an existing account</button>'
+        );
+        const switchBtn = $('#alertBtnSwitchLogin');
+        if (switchBtn) {
+          switchBtn.onclick = () => {
+            showAuthScreen('loginPanel');
+            if ($('#loginEmail')) $('#loginEmail').value = email;
+          };
+        }
+        startButtonCooldown(btn, 'Register Account', 60);
+      } else if (err.isExistingUser) {
+        showAuthAlert(
+          'An account with this email already exists.',
+          'info',
+          '<button id="alertBtnLoginNow" type="button">Click here to Sign In</button>'
+        );
+        const loginBtn = $('#alertBtnLoginNow');
+        if (loginBtn) {
+          loginBtn.onclick = () => {
+            showAuthScreen('loginPanel');
+            if ($('#loginEmail')) $('#loginEmail').value = email;
+          };
+        }
+      } else {
+        showAuthAlert(err.message || 'Registration request could not be processed.', 'error');
+        toast(err.message || 'Registration failed.');
+      }
     } finally {
-      btn.disabled = false;
-      btn.textContent = 'Register Account';
+      isAuthProcessing = false;
+      if (!authCooldownTimer) {
+        btn.disabled = false;
+        btn.textContent = 'Register Account';
+      }
     }
   });
 
   $('#loginForm').addEventListener('submit', async e => {
     e.preventDefault();
+    if (isAuthProcessing) return;
+
     const email = $('#loginEmail').value.trim().toLowerCase();
     const pw = $('#loginPassword').value;
     if (!email || !pw) return toast('Please enter your email and password.');
 
     const btn = $('#loginForm button[type="submit"]');
+    isAuthProcessing = true;
     btn.disabled = true;
     btn.textContent = 'Signing in...';
+    hideAuthAlert();
 
     try {
       const user = await loginUser(email, pw);
@@ -171,38 +245,76 @@ function initEventListeners() {
       $('#loginForm').reset();
       await syncDashboardData(user);
     } catch (err) {
+      console.warn('Login attempt failed:', err);
+      showAuthAlert(err.message || 'Incorrect email or password.', 'error');
       toast(err.message || 'Incorrect email or password.');
     } finally {
+      isAuthProcessing = false;
       btn.disabled = false;
       btn.textContent = 'Sign In';
     }
   });
 
+  // Demo Credentials Quick Filler Button
+  const btnFillDemo = $('#btnFillDemoCreds');
+  if (btnFillDemo) {
+    btnFillDemo.onclick = () => {
+      $('#loginEmail').value = 'demo.patient@medikey.local';
+      $('#loginPassword').value = 'MediKeyDemo@2026';
+      hideAuthAlert();
+      toast('Demo credentials populated! Click Sign In to test.');
+    };
+  }
+
   $('#resetForm').addEventListener('submit', async e => {
     e.preventDefault();
+    if (isAuthProcessing) return;
+
     const email = $('#resetEmail').value.trim().toLowerCase();
     if (!email) return toast('Enter your email address.');
 
     const btn = $('#resetForm button[type="submit"]');
+    isAuthProcessing = true;
     btn.disabled = true;
-    btn.textContent = 'Sending link...';
+    btn.textContent = 'Sending recovery email...';
+    hideAuthAlert();
 
     try {
       await requestPasswordReset(email);
     } catch (err) {
-      toast(err.message || 'Could not send reset email.');
+      console.warn('Password reset request failed:', err);
+      if (err.isRateLimit) {
+        showAuthAlert(
+          'Too many email requests. Please try again later.',
+          'warning'
+        );
+        startButtonCooldown(btn, 'Send Recovery Email', 60);
+      } else {
+        showAuthAlert(err.message || 'Could not send reset email.', 'error');
+        toast(err.message || 'Could not send reset email.');
+      }
     } finally {
-      btn.disabled = false;
-      btn.textContent = 'Send Recovery Email';
+      isAuthProcessing = false;
+      if (!authCooldownTimer) {
+        btn.disabled = false;
+        btn.textContent = 'Send Recovery Email';
+      }
     }
   });
 
   $('#updatePasswordForm').addEventListener('submit', async e => {
     e.preventDefault();
+    if (isAuthProcessing) return;
+
     const p1 = $('#updatePassword').value;
     const p2 = $('#updateConfirmPassword').value;
     if (p1.length < 6) return toast('Password must be at least 6 characters.');
     if (p1 !== p2) return toast('Passwords do not match.');
+
+    const btn = $('#updatePasswordForm button[type="submit"]');
+    isAuthProcessing = true;
+    btn.disabled = true;
+    btn.textContent = 'Updating password...';
 
     try {
       await updatePassword(p1);
@@ -211,6 +323,10 @@ function initEventListeners() {
       showAuthScreen('loginPanel');
     } catch (err) {
       toast(err.message || 'Failed to update password.');
+    } finally {
+      isAuthProcessing = false;
+      btn.disabled = false;
+      btn.textContent = 'Update Password';
     }
   });
 

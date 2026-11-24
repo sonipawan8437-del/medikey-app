@@ -1368,3 +1368,62 @@ footer {
 .share-status-pill.active { background: #dcfce7; color: #15803d; }
 .share-status-pill.revoked { background: #fee2e2; color: #991b1b; }
 
+/* Auth Alert Banner & Rate Limit Feedback */
+.auth-alert-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  margin-bottom: 16px;
+  font-size: 0.88rem;
+  line-height: 1.4;
+  animation: fadeIn 0.2s ease-in-out;
+}
+.auth-alert-banner.hidden {
+  display: none !important;
+}
+.auth-alert-banner.error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+.auth-alert-banner.warning {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #92400e;
+}
+.auth-alert-banner.info {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1e40af;
+}
+.auth-alert-icon {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+.auth-alert-body {
+  flex: 1;
+}
+.auth-alert-msg {
+  font-weight: 600;
+}
+.auth-alert-action {
+  margin-top: 6px;
+}
+.auth-alert-action button {
+  background: none;
+  border: none;
+  padding: 0;
+  color: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 0.84rem;
+}
+button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed !important;
+}
+
+
