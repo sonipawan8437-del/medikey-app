@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#123575"/>
+      <stop offset="70%" stop-color="#2468c8"/>
+      <stop offset="100%" stop-color="#60c5ee"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#071b40" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="128" fill="url(#grad)"/>
+  <g filter="url(#shadow)">
+    <!-- Shield / Medical Cross Shape -->
+    <path d="M256 90 L390 145 C390 280 256 410 256 410 C256 410 122 280 122 145 Z" fill="#ffffff" fill-opacity="0.15" stroke="#ffffff" stroke-width="8"/>
+    <!-- Medical Cross -->
+    <rect x="226" y="170" width="60" height="170" rx="16" fill="#ffffff"/>
+    <rect x="171" y="225" width="170" height="60" rx="16" fill="#ffffff"/>
+  </g>
+</svg>

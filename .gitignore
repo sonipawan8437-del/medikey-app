@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Environment variables & secrets (Never commit Supabase Service Role keys, DB passwords, or credentials)
+.env
+.env.*
+*.env
+*.secret
+*.pem
+*.key
+*.cert
+credentials*.json
+service-account*.json
+
+# Supabase local artifacts & caches
+supabase/.temp/
+supabase/.branches/
+
+# Temporary diagnostic scripts & scratch files
+scripts/sql/
+*.tmp
+*.temp
+test-output/
+
+# OS metadata & Editor directories
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*~
+
+# Vercel deployment artifacts
+.vercel/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
