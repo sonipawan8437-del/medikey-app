@@ -127,8 +127,8 @@ export function openProfileEditor(onProfileSaved) {
           <label for="fBlood">Blood group</label>
           <select id="fBlood">
             ${['Unknown', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
-              .map(v => `<option value="${v}" ${p.blood_group === v ? 'selected' : ''}>${v}</option>`)
-              .join('')}
+      .map(v => `<option value="${v}" ${p.blood_group === v ? 'selected' : ''}>${v}</option>`)
+      .join('')}
           </select>
         </div>
       </div>
@@ -218,7 +218,7 @@ export function openProfileEditor(onProfileSaved) {
 
       Object.assign(currentProfile, updates);
       closeModal();
-      toast('Profile updated in Supabase.');
+      toast('Profile updated successfully.');
       if (typeof onProfileSaved === 'function') onProfileSaved(currentProfile);
     } catch (err) {
       console.error('Error saving profile:', err);

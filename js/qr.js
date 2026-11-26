@@ -116,7 +116,7 @@ export async function showQRModal() {
   const shareUrl = activeShare ? `${location.origin}${location.pathname}#emergency-share=${activeShare.share_token}` : location.href;
 
   openModal(
-    'Secure Emergency QR Pass (Supabase Token)',
+    'Secure Emergency QR Pass (Cryptographic Token)',
     `
     <div style="text-align: center;">
       <div id="fullQRContainer" style="display:inline-block; padding:12px; background:#fff; border:1px solid #d8e6f3; border-radius:16px; margin: 8px auto;"></div>
@@ -155,7 +155,7 @@ export async function showQRModal() {
       </div>
 
       <div class="notice" style="margin-top: 14px; text-align: left;">
-        <strong>🔒 Zero Exposure Guarantee:</strong> The QR code points to a restricted Supabase RPC endpoint that only serves the fields you have enabled above.
+        <strong>🔒 Zero Exposure Guarantee:</strong> The QR code points to a secure cryptographic verification endpoint that only serves the fields you have enabled above.
       </div>
     </div>
     `
@@ -239,7 +239,7 @@ export async function resolveAndShowEmergencyShare(token) {
 
   openModal(
     'Emergency Healthcare Verification',
-    `<div style="text-align: center; padding: 20px;"><div class="upload-progress-bar" style="width: 100%;"></div><p class="muted">Verifying secure token with Supabase...</p></div>`
+    `<div style="text-align: center; padding: 20px;"><div class="upload-progress-bar" style="width: 100%;"></div><p class="muted">Verifying secure token with healthcare cloud...</p></div>`
   );
 
   try {
@@ -293,7 +293,7 @@ export async function resolveAndShowEmergencyShare(token) {
       </div>
 
       <div class="notice" style="margin-top: 16px;">
-        <strong>🛡️ Cryptographic Access Notice:</strong> Loaded through a restricted Supabase RPC function. No full medical history or private vault files were exposed.
+        <strong>🛡️ Cryptographic Access Notice:</strong> Loaded through a restricted emergency verification endpoint. No full medical history or private vault files were exposed.
       </div>
       `
     );

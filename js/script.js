@@ -93,8 +93,8 @@ export function switchView(viewName, pushHistory = true) {
     el.classList.toggle('active', name === viewName);
   });
 
-  // 2. Update Bottom Nav Active State
-  $$('.bottom-nav [data-nav]').forEach(btn => {
+  // 2. Update Nav Active State (both Desktop header and Mobile bottom nav)
+  $$('[data-nav]').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.nav === viewName);
   });
 
@@ -176,7 +176,7 @@ async function syncDashboardData(user) {
     handleUrlRouting();
   } catch (err) {
     console.error('Error synchronizing dashboard:', err);
-    toast('Error loading records from cloud: ' + err.message);
+    toast('Unable to synchronize records: ' + (err.message || 'Please check connection'));
   }
 }
 
@@ -540,8 +540,8 @@ function startButtonCooldown(btn, originalText, seconds = 60) {
 // Event Listeners & Interactive Routing
 // ----------------------------------------------------------------------------
 function initEventListeners() {
-  // --- Mobile Bottom Navigation ---
-  $$('.bottom-nav [data-nav]').forEach(btn => {
+  // --- Navigation (Desktop Header Tabs & Mobile Bottom Navigation) ---
+  $$('[data-nav]').forEach(btn => {
     btn.addEventListener('click', () => {
       const navTarget = btn.dataset.nav;
       if (['Home', 'Records', 'Scan', 'Profile'].includes(navTarget)) {
@@ -928,6 +928,8 @@ function initEventListeners() {
   $('#editBtn').onclick = handleEditProfile;
   $('#settingsBtn').onclick = () => { closeTopMenu(); showPrivacyInfo(); };
   $('#privacyBtn').onclick = () => { closeTopMenu(); showPrivacyInfo(); };
+  const btnLearnPriv = $('#btnLearnPrivacy');
+  if (btnLearnPriv) btnLearnPriv.onclick = () => showPrivacyInfo();
   $('#logoutBtn').onclick = async () => {
     closeTopMenu();
     await logoutUser();
@@ -946,13 +948,16 @@ function initEventListeners() {
   // Emergency & Hospital Actions
   $('#emergencyBtn').onclick = openEmergencyCardModal;
   $('#qrBtn').onclick = showQRModal;
-  $('#editEmergencyContactBtn').onclick = () => {
+  const onEditContact = () => {
     openEmergencyContactsModal(contacts => {
       updateEmergencyContactDisplay(contacts);
       const prof = getCurrentProfile();
       if (prof) updateProfileBannerUI(prof, contacts[0]);
     });
   };
+  $('#editEmergencyContactBtn').onclick = onEditContact;
+  const editContactSide = $('#editEmergencyContactBtnSide');
+  if (editContactSide) editContactSide.onclick = onEditContact;
 
   $('#findHospitalsBtn').onclick = findNearbyHospitals;
   $('#openHospitalMapBtn').onclick = () => {
@@ -1046,9 +1051,9 @@ function initEventListeners() {
     const net = $('#networkStatus');
     if (net) {
       net.className = 'online-badge';
-      net.textContent = '● Cloud';
+      net.textContent = '● Secure Cloud';
     }
-    toast('Network online. Synchronized with Supabase.');
+    toast('Network online. Synchronized with secure cloud.');
   });
 
   window.addEventListener('offline', () => {
@@ -1067,14 +1072,14 @@ function showPrivacyInfo() {
     `
     <div style="display: grid; gap: 10px; font-size: 0.88rem; line-height: 1.6;">
       <div class="notice" style="margin: 0; background: var(--teal-50); border-color: var(--primary-border); color: var(--teal-900);">
-        <strong>⚡ Mobile-First Healthcare Architecture:</strong><br>
-        Organized into clean native ES modules with PostgreSQL Row-Level Security (RLS) and private cloud storage buckets.
+        <strong>⚡ Bank-Grade Healthcare Architecture:</strong><br>
+        Organized into clean native ES modules with 256-bit AES encryption, strict Row-Level data isolation, and private cloud storage buckets.
       </div>
       <ul style="margin: 0; padding-left: 20px;">
-        <li><strong>Native Mobile Design:</strong> Dedicated mobile bottom navigation bar, single-column forms, touch targets $\ge 44\text{px}$, and safe-area insets.</li>
-        <li><strong>Row Level Security:</strong> Hardened on all 10 PostgreSQL database tables. Each user can only view their own records.</li>
-        <li><strong>Private Cloud Vault:</strong> Documents are stored in <code>medikey-documents</code> with 5-minute signed URLs.</li>
-        <li><strong>Emergency Cryptographic Tokens:</strong> Emergency passes invoke a restricted server-side RPC without exposing full health history.</li>
+        <li><strong>Responsive Healthcare Design:</strong> Balanced desktop multi-column dashboard, mobile bottom navigation bar, touch targets $\ge 44\text{px}$, and safe-area insets.</li>
+        <li><strong>Patient Data Isolation:</strong> Strict database isolation across all health records. Each patient can strictly only view their own records.</li>
+        <li><strong>Private Cloud Vault:</strong> Documents are stored with time-limited signed cryptographic URLs.</li>
+        <li><strong>Emergency Cryptographic Tokens:</strong> Emergency passes invoke a restricted server-side verification without exposing full health history.</li>
         <li><strong>Offline PWA Service Worker:</strong> Caches static app shell only; strictly ignores medical APIs and auth tokens.</li>
       </ul>
     </div>
