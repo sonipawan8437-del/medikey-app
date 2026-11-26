@@ -179,7 +179,7 @@ async function main() {
   console.log('\n[3/10] Auditing Cache Storage security (Zero Patient Data / Zero Tokens)...');
   const cacheAudit = await evalInPage(`(async () => {
     const keys = await caches.keys();
-    const v6Exists = keys.includes('medikey-shell-v6');
+    const v6Exists = keys.includes('medikey-shell-v7') || keys.includes('medikey-shell-v6');
     let hasSensitive = false;
     let cachedUrls = [];
 

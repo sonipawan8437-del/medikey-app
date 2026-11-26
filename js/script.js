@@ -4,7 +4,7 @@
  * Coordinates Auth, Profile, Records, Storage, QR, and Emergency modules.
  */
 
-import { $, $$, toast, openModal, closeModal, applyLanguage, escapeHTML, formatBytes } from './utils.js';
+import { $, $$, toast, openModal, closeModal, applyLanguage, escapeHTML, formatBytes, t, getLanguage } from './utils.js';
 import { supabase } from './supabase-client.js';
 import {
   getCurrentUser,
@@ -204,7 +204,7 @@ function renderHomeAppointmentsPreview() {
 
   const apts = getAppointments() || [];
   if (apts.length === 0) {
-    container.innerHTML = '<div class="clinical-card-empty">No scheduled doctor visits recorded.</div>';
+    container.innerHTML = `<div class="clinical-card-empty">${t('noAppointments')}</div>`;
     return;
   }
 
@@ -214,13 +214,13 @@ function renderHomeAppointmentsPreview() {
       <div class="mini-item-content">
         <strong style="font-size: 0.9rem; color: var(--text-main);">🏥 ${escapeHTML(next.clinic_name)}</strong>
         <p style="margin: 2px 0 0; font-size: 0.8rem; color: var(--text-muted);">
-          Date: <strong>${escapeHTML(next.appointment_date)}</strong> ${next.appointment_time ? `at ${escapeHTML(next.appointment_time)}` : ''}
+          ${t('recordDate')}: <strong>${escapeHTML(next.appointment_date)}</strong> ${next.appointment_time ? `· ${escapeHTML(next.appointment_time)}` : ''}
           ${next.reason ? `· <em>${escapeHTML(next.reason)}</em>` : ''}
         </p>
       </div>
-      <button class="btn light sm btn-open-apt-quick" type="button">Manage</button>
+      <button class="btn light sm btn-open-apt-quick" type="button">${t('detailsBtn')}</button>
     </div>
-    ${apts.length > 1 ? `<div style="margin-top: 6px; font-size: 0.76rem; color: var(--primary); font-weight: 700;">＋ ${apts.length - 1} more visit${apts.length > 2 ? 's' : ''} scheduled</div>` : ''}
+    ${apts.length > 1 ? `<div style="margin-top: 6px; font-size: 0.76rem; color: var(--primary); font-weight: 700;">＋ ${apts.length - 1} ${t('qaVisits')}</div>` : ''}
   `;
 
   const manageBtn = container.querySelector('.btn-open-apt-quick');
@@ -238,7 +238,7 @@ function renderHomePrescriptionsPreview() {
 
   const rxs = getPrescriptions() || [];
   if (rxs.length === 0) {
-    container.innerHTML = '<div class="clinical-card-empty">No active prescriptions entered yet.</div>';
+    container.innerHTML = `<div class="clinical-card-empty">${t('noPrescriptions')}</div>`;
     return;
   }
 
@@ -250,14 +250,14 @@ function renderHomePrescriptionsPreview() {
           <div>
             <strong style="font-size: 0.88rem; color: var(--text-main);">💊 ${escapeHTML(rx.medication_name)}</strong>
             <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 1px;">
-              ${escapeHTML(rx.dosage || 'Standard dose')} · ${escapeHTML(rx.frequency || 'As needed')}
+              ${escapeHTML(rx.dosage || '')} ${rx.frequency ? `· ${escapeHTML(rx.frequency)}` : ''}
             </div>
           </div>
           ${rx.prescribing_doctor ? `<small style="font-size: 0.72rem; color: var(--text-tertiary);">${escapeHTML(rx.prescribing_doctor)}</small>` : ''}
         </div>
       `).join('')}
     </div>
-    ${rxs.length > 3 ? `<div style="margin-top: 6px; font-size: 0.76rem; color: var(--primary); font-weight: 700;">＋ ${rxs.length - 3} more medication${rxs.length > 4 ? 's' : ''}</div>` : ''}
+    ${rxs.length > 3 ? `<div style="margin-top: 6px; font-size: 0.76rem; color: var(--primary); font-weight: 700;">＋ ${rxs.length - 3} ${t('qaMedicines')}</div>` : ''}
   `;
 }
 
@@ -269,7 +269,7 @@ function renderHomeDocumentsPreview() {
   const allDocs = [...(docs.medical || []), ...(docs.labs || []), ...(docs.certificates || [])];
 
   if (allDocs.length === 0) {
-    container.innerHTML = '<div class="clinical-card-empty">No medical documents uploaded to private vault yet.</div>';
+    container.innerHTML = `<div class="clinical-card-empty">${t('noDocuments')}</div>`;
     return;
   }
 
@@ -287,12 +287,12 @@ function renderHomeDocumentsPreview() {
             </small>
           </div>
           <button class="btn light sm btn-quick-view-doc" data-path="${escapeHTML(d.file_path)}" type="button" style="min-height: 30px; padding: 2px 8px; font-size: 0.74rem;">
-            View
+            ${t('view')}
           </button>
         </div>
       `).join('')}
     </div>
-    ${allDocs.length > 3 ? `<div style="margin-top: 6px; font-size: 0.76rem; color: var(--primary); font-weight: 700;">＋ ${allDocs.length - 3} more document${allDocs.length > 4 ? 's' : ''} in vault</div>` : ''}
+    ${allDocs.length > 3 ? `<div style="margin-top: 6px; font-size: 0.76rem; color: var(--primary); font-weight: 700;">＋ ${allDocs.length - 3} ${t('qaRecords')}</div>` : ''}
   `;
 
   container.querySelectorAll('.btn-quick-view-doc').forEach(btn => {
@@ -1134,14 +1134,26 @@ function initEventListeners() {
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
-  // Language Switcher
+  // Language Switcher & Persistence
   $('#appLanguage').addEventListener('change', async e => {
     const lang = e.target.value;
     applyLanguage(lang);
     const user = getCurrentUser();
     if (supabase && user) {
       await supabase.from('user_settings').upsert({ user_id: user.id, language: lang });
-      toast('Language preference saved.');
+      toast(t('prefSavedToast'));
+    }
+  });
+
+  window.addEventListener('medikey:languagechange', () => {
+    const user = getCurrentUser();
+    if (user) {
+      const profile = getCurrentProfile();
+      const contacts = getEmergencyContacts() || [];
+      const primaryContact = contacts.find(c => c.is_primary) || contacts[0];
+      updateProfileBannerUI(profile, primaryContact);
+      updateEmergencyContactDisplay(contacts);
+      renderHomeClinicalPreviews();
     }
   });
 

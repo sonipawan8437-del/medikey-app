@@ -4,7 +4,7 @@
  */
 
 import { supabase } from './supabase-client.js';
-import { $, $$, toast, openModal, closeModal, escapeHTML, compressImageToBlob } from './utils.js';
+import { $, $$, toast, openModal, closeModal, escapeHTML, compressImageToBlob, t, getLanguage } from './utils.js';
 import { getCurrentUser } from './auth.js';
 
 let currentProfile = null;
@@ -56,13 +56,20 @@ export function updateProfileBannerUI(profile, primaryContact) {
 
   const fullName = p.full_name || 'Patient';
   const healthId = p.health_id || '—';
+  const lang = getLanguage();
+
+  let greetingPrefix = 'Hello';
+  if (lang === 'hi') greetingPrefix = 'नमस्ते';
+  else if (lang === 'mr') greetingPrefix = 'नमस्कार';
+
+  const displayedGreeting = (fullName === 'Patient' || fullName === 'मरीज') ? t('helloPatient') : `${greetingPrefix}, ${fullName}`;
 
   if ($('#displayName')) $('#displayName').textContent = fullName;
-  if ($('#displayId')) $('#displayId').textContent = `Health ID: ${healthId}`;
-  if ($('#welcomeGreeting')) $('#welcomeGreeting').textContent = `Hello, ${fullName}`;
-  if ($('#welcomeHealthId')) $('#welcomeHealthId').textContent = `Digital Healthcare Pass · ID: ${healthId}`;
+  if ($('#displayId')) $('#displayId').textContent = `${t('healthIdLabel')} ${healthId}`;
+  if ($('#welcomeGreeting')) $('#welcomeGreeting').textContent = displayedGreeting;
+  if ($('#welcomeHealthId')) $('#welcomeHealthId').textContent = `${t('digitalPassVerified')} · ID: ${healthId}`;
   if ($('#profileTabName')) $('#profileTabName').textContent = fullName;
-  if ($('#profileTabId')) $('#profileTabId').textContent = `Health ID: ${healthId}`;
+  if ($('#profileTabId')) $('#profileTabId').textContent = `${t('healthIdLabel')} ${healthId}`;
 
   const initials = fullName
     .split(/\s+/)
@@ -86,10 +93,10 @@ export function updateProfileBannerUI(profile, primaryContact) {
   if (badgeContainer) {
     badgeContainer.innerHTML = '';
     if (p.blood_group && p.blood_group !== 'Unknown') {
-      badgeContainer.innerHTML += `<span class="badge-tag blood">🩸 Blood: ${escapeHTML(p.blood_group)}</span>`;
+      badgeContainer.innerHTML += `<span class="badge-tag blood">🩸 ${t('bloodGroupLabel')}: ${escapeHTML(p.blood_group)}</span>`;
     }
     if (p.allergies) {
-      badgeContainer.innerHTML += `<span class="badge-tag allergy">⚠️ Allergy: ${escapeHTML(p.allergies)}</span>`;
+      badgeContainer.innerHTML += `<span class="badge-tag allergy">⚠️ ${t('knownAllergiesLabel')}: ${escapeHTML(p.allergies)}</span>`;
     }
     if (p.chronic_conditions) {
       badgeContainer.innerHTML += `<span class="badge-tag condition">⚕️ ${escapeHTML(p.chronic_conditions)}</span>`;
@@ -97,10 +104,11 @@ export function updateProfileBannerUI(profile, primaryContact) {
   }
 
   // Emergency summary card
-  const contactText = primaryContact ? `${escapeHTML(primaryContact.name)} (${escapeHTML(primaryContact.phone)})` : 'Not provided';
-  const allergyText = p.allergies ? escapeHTML(p.allergies) : 'Not provided';
+  const notProvided = t('notProvided');
+  const contactText = primaryContact ? `${escapeHTML(primaryContact.name)} (${escapeHTML(primaryContact.phone)})` : notProvided;
+  const allergyText = p.allergies ? escapeHTML(p.allergies) : notProvided;
   if ($('#emergencySummary')) {
-    $('#emergencySummary').innerHTML = `<strong>ICE:</strong> ${contactText} &nbsp;|&nbsp; <strong>Allergies:</strong> ${allergyText}`;
+    $('#emergencySummary').innerHTML = `<strong>${t('icePrefix')}</strong> ${contactText} &nbsp;|&nbsp; <strong>${t('allergiesPrefix')}</strong> ${allergyText}`;
   }
 
   checkAndRenderProfileCompletion(p, primaryContact);
@@ -200,7 +208,7 @@ export function openViewProfileModal(onEditRequested) {
     .toUpperCase() || 'MK';
 
   openModal(
-    'Patient Profile Overview',
+    t('profileOverviewTitle'),
     `
     <div class="profile-overview-card">
       <div style="text-align: center; padding-bottom: 14px; border-bottom: 1px solid var(--border); margin-bottom: 14px;">
@@ -213,47 +221,47 @@ export function openViewProfileModal(onEditRequested) {
 
       <div style="display: grid; gap: 12px; font-size: 0.88rem;">
         <div class="profile-overview-field">
-          <span style="color: var(--text-secondary); font-size: 0.78rem; font-weight: 700;">REGISTERED EMAIL (ACCOUNT ID)</span>
+          <span style="color: var(--text-secondary); font-size: 0.78rem; font-weight: 700;">${t('regEmailAccountId')}</span>
           <div style="color: var(--text-main); font-weight: 600;">${escapeHTML(p.email || 'Registered Patient')}</div>
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
           <div class="profile-overview-field">
-            <span style="color: var(--text-secondary); font-size: 0.78rem; font-weight: 700;">BLOOD GROUP</span>
-            <div style="color: var(--emergency-dark); font-weight: 800; font-size: 1rem;">${escapeHTML(p.blood_group || 'Unknown')}</div>
+            <span style="color: var(--text-secondary); font-size: 0.78rem; font-weight: 700;">${t('bloodGroupLabel')}</span>
+            <div style="color: var(--emergency-dark); font-weight: 800; font-size: 1rem;">${escapeHTML(p.blood_group || t('unknown'))}</div>
           </div>
           <div class="profile-overview-field">
-            <span style="color: var(--text-secondary); font-size: 0.78rem; font-weight: 700;">AGE</span>
-            <div style="color: var(--text-main); font-weight: 600;">${p.age ? `${p.age} years` : 'Not specified'}</div>
+            <span style="color: var(--text-secondary); font-size: 0.78rem; font-weight: 700;">${t('ageLabel')}</span>
+            <div style="color: var(--text-main); font-weight: 600;">${p.age ? `${p.age} ${t('yearsOld')}` : t('notSpecified')}</div>
           </div>
         </div>
 
         <div class="profile-overview-field">
-          <span style="color: var(--text-secondary); font-size: 0.78rem; font-weight: 700;">PHONE NUMBER</span>
-          <div style="color: var(--text-main); font-weight: 600;">${escapeHTML(p.phone || 'Not provided')}</div>
+          <span style="color: var(--text-secondary); font-size: 0.78rem; font-weight: 700;">${t('phoneNumberLabel')}</span>
+          <div style="color: var(--text-main); font-weight: 600;">${escapeHTML(p.phone || t('notProvided'))}</div>
         </div>
 
         <div class="profile-overview-field">
-          <span style="color: var(--text-secondary); font-size: 0.78rem; font-weight: 700;">KNOWN ALLERGIES</span>
+          <span style="color: var(--text-secondary); font-size: 0.78rem; font-weight: 700;">${t('knownAllergiesLabel')}</span>
           <div style="color: ${p.allergies ? 'var(--amber-700)' : 'var(--text-main)'}; font-weight: 600;">
-            ${escapeHTML(p.allergies || 'Not provided')}
+            ${escapeHTML(p.allergies || t('notProvided'))}
           </div>
         </div>
 
         <div class="profile-overview-field">
-          <span style="color: var(--text-secondary); font-size: 0.78rem; font-weight: 700;">CHRONIC CONDITIONS</span>
-          <div style="color: var(--text-main); font-weight: 600;">${escapeHTML(p.chronic_conditions || 'Not provided')}</div>
+          <span style="color: var(--text-secondary); font-size: 0.78rem; font-weight: 700;">${t('chronicConditionsLabel')}</span>
+          <div style="color: var(--text-main); font-weight: 600;">${escapeHTML(p.chronic_conditions || t('notProvided'))}</div>
         </div>
 
         <div class="profile-overview-field">
-          <span style="color: var(--text-secondary); font-size: 0.78rem; font-weight: 700;">ACTIVE MEDICATIONS</span>
-          <div style="color: var(--text-main); font-weight: 600;">${escapeHTML(p.current_medications || 'Not provided')}</div>
+          <span style="color: var(--text-secondary); font-size: 0.78rem; font-weight: 700;">${t('activeMedicationsLabel')}</span>
+          <div style="color: var(--text-main); font-weight: 600;">${escapeHTML(p.current_medications || t('notProvided'))}</div>
         </div>
       </div>
 
       <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; border-top: 1px solid var(--border); padding-top: 14px;">
-        <button class="btn light sm" type="button" id="btnCloseViewProfile">Close</button>
-        <button class="btn primary sm" type="button" id="btnProceedToEdit">✎ Edit Profile</button>
+        <button class="btn light sm" type="button" id="btnCloseViewProfile">${t('closeBtn')}</button>
+        <button class="btn primary sm" type="button" id="btnProceedToEdit">${t('proceedToEdit')}</button>
       </div>
     </div>
     `
@@ -279,30 +287,30 @@ export function openEditProfileModal(onProfileSaved, initialSection = 'personal'
   if (!p || !user) return toast('Please sign in to edit profile.');
 
   openModal(
-    'Edit Patient Profile',
+    t('editPatientProfile'),
     `
     <div>
       <!-- Segmented Tab Navigation for Organized Editing -->
       <div class="auth-tab-bar" style="margin-bottom: 16px;">
-        <button class="auth-tab-btn ${initialSection === 'personal' ? 'active' : ''}" type="button" id="tabSectionPersonal">👤 Personal</button>
-        <button class="auth-tab-btn ${initialSection === 'contact' ? 'active' : ''}" type="button" id="tabSectionContact">📞 Contact</button>
-        <button class="auth-tab-btn ${initialSection === 'medical' ? 'active' : ''}" type="button" id="tabSectionMedical">🩺 Medical</button>
+        <button class="auth-tab-btn ${initialSection === 'personal' ? 'active' : ''}" type="button" id="tabSectionPersonal">${t('tabPersonal')}</button>
+        <button class="auth-tab-btn ${initialSection === 'contact' ? 'active' : ''}" type="button" id="tabSectionContact">${t('tabContact')}</button>
+        <button class="auth-tab-btn ${initialSection === 'medical' ? 'active' : ''}" type="button" id="tabSectionMedical">${t('tabMedical')}</button>
       </div>
 
       <form id="organizedProfileForm">
         <!-- Section A: Personal Identity -->
         <div id="sectionPersonal" class="${initialSection === 'personal' ? '' : 'hidden'}">
           <div class="field">
-            <label for="fPhotoFile">Profile Avatar (Tap to select picture)</label>
+            <label for="fPhotoFile">${t('profileAvatarLabel')}</label>
             <input id="fPhotoFile" type="file" accept="image/*">
             <img id="fPhotoPreview" class="photo-preview ${p.avatar_url ? '' : 'hidden'}" src="${escapeHTML(p.avatar_url || '')}" alt="Avatar preview">
           </div>
           <div class="field">
-            <label for="fFullName">Full name *</label>
+            <label for="fFullName">${t('fullName')}</label>
             <input id="fFullName" required maxlength="70" value="${escapeHTML(p.full_name || '')}" placeholder="e.g. Alex Morgan">
           </div>
           <div class="field">
-            <label for="fAgeVal">Age</label>
+            <label for="fAgeVal">${t('ageFieldLabel')}</label>
             <input id="fAgeVal" type="number" min="0" max="130" value="${escapeHTML(p.age || '')}" placeholder="e.g. 34">
           </div>
         </div>
@@ -310,12 +318,12 @@ export function openEditProfileModal(onProfileSaved, initialSection = 'personal'
         <!-- Section B: Contact Details -->
         <div id="sectionContact" class="${initialSection === 'contact' ? '' : 'hidden'}">
           <div class="field">
-            <label for="fEmailReadonly">Account Email (Read-only)</label>
+            <label for="fEmailReadonly">${t('accountEmailReadonly')}</label>
             <input id="fEmailReadonly" type="email" value="${escapeHTML(p.email || user.email || '')}" readonly style="background: var(--bg-subtle); color: var(--text-secondary); cursor: not-allowed;">
-            <small style="color: var(--text-secondary); font-size: 0.74rem;">Account email is verified with secure authentication and cannot be changed here.</small>
+            <small style="color: var(--text-secondary); font-size: 0.74rem;">${t('accountEmailNote')}</small>
           </div>
           <div class="field">
-            <label for="fPhoneVal">Mobile Number</label>
+            <label for="fPhoneVal">${t('mobileNumberLabel')}</label>
             <input id="fPhoneVal" type="tel" value="${escapeHTML(p.phone || '')}" placeholder="e.g. +1 555-0199">
           </div>
         </div>
@@ -323,30 +331,30 @@ export function openEditProfileModal(onProfileSaved, initialSection = 'personal'
         <!-- Section C: Medical Parameters -->
         <div id="sectionMedical" class="${initialSection === 'medical' ? '' : 'hidden'}">
           <div class="field">
-            <label for="fBloodVal">Blood Group</label>
+            <label for="fBloodVal">${t('bloodGroupSelectLabel')}</label>
             <select id="fBloodVal">
               ${['Unknown', 'A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
-                .map(v => `<option value="${v}" ${p.blood_group === v ? 'selected' : ''}>${v}</option>`)
+                .map(v => `<option value="${v}" ${p.blood_group === v ? 'selected' : ''}>${v === 'Unknown' ? t('unknown') : v}</option>`)
                 .join('')}
             </select>
           </div>
           <div class="field">
-            <label for="fAllergiesVal">Known Allergies (e.g. Penicillin, Peanuts, Sulfa)</label>
-            <input id="fAllergiesVal" value="${escapeHTML(p.allergies || '')}" placeholder="e.g. Penicillin (Severe), Tree nuts">
+            <label for="fAllergiesVal">${t('knownAllergiesField')}</label>
+            <input id="fAllergiesVal" value="${escapeHTML(p.allergies || '')}" placeholder="e.g. Penicillin, Tree nuts">
           </div>
           <div class="field">
-            <label for="fMedicinesVal">Active Medications & Dosages</label>
-            <input id="fMedicinesVal" value="${escapeHTML(p.current_medications || '')}" placeholder="e.g. Metformin 500mg BID, Lisinopril 10mg QD">
+            <label for="fMedicinesVal">${t('currentMedicationsField')}</label>
+            <input id="fMedicinesVal" value="${escapeHTML(p.current_medications || '')}" placeholder="e.g. Metformin 500mg, Lisinopril 10mg">
           </div>
           <div class="field">
-            <label for="fConditionsVal">Chronic Medical Conditions</label>
+            <label for="fConditionsVal">${t('chronicConditionsField')}</label>
             <input id="fConditionsVal" value="${escapeHTML(p.chronic_conditions || '')}" placeholder="e.g. Type 1 Diabetes, Hypertension">
           </div>
         </div>
 
         <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; border-top: 1px solid var(--border); padding-top: 14px;">
-          <button class="btn light" type="button" id="btnCancelEditProf">Cancel</button>
-          <button class="btn primary" type="submit" id="btnSaveFullProfile">Save Changes</button>
+          <button class="btn light" type="button" id="btnCancelEditProf">${t('cancelBtn')}</button>
+          <button class="btn primary" type="submit" id="btnSaveFullProfile">${t('saveChangesBtn')}</button>
         </div>
       </form>
     </div>
@@ -476,40 +484,40 @@ export function openChangePasswordModal() {
   if (!user) return toast('Please sign in to change your password.');
 
   openModal(
-    'Change Password & Security',
+    t('changePasswordTitle'),
     `
     <form id="changePasswordModalForm">
       <p class="muted" style="margin: 0 0 14px; font-size: 0.88rem; line-height: 1.45;">
-        Configure a new secure password for your MediKey account. You will use this new password on your next sign in.
+        ${t('updatePasswordSubtitle')}
       </p>
 
       <div class="field">
-        <label for="cpCurrent">Current Password *</label>
+        <label for="cpCurrent">${t('currentPasswordLabel')}</label>
         <div class="pw-wrap">
-          <input id="cpCurrent" type="password" required autocomplete="current-password" placeholder="Enter your current password">
+          <input id="cpCurrent" type="password" required autocomplete="current-password" placeholder="${t('passwordPlaceholder')}">
           <button class="pw-toggle-btn" type="button" aria-label="Toggle password visibility" data-target="cpCurrent">👁️</button>
         </div>
       </div>
 
       <div class="field">
-        <label for="cpNew">New Password * (At least 6 characters)</label>
+        <label for="cpNew">${t('newPasswordChangeLabel')}</label>
         <div class="pw-wrap">
-          <input id="cpNew" type="password" minlength="6" required autocomplete="new-password" placeholder="At least 6 characters">
+          <input id="cpNew" type="password" minlength="6" required autocomplete="new-password" placeholder="${t('passwordMin')}">
           <button class="pw-toggle-btn" type="button" aria-label="Toggle password visibility" data-target="cpNew">👁️</button>
         </div>
       </div>
 
       <div class="field">
-        <label for="cpConfirm">Confirm New Password *</label>
+        <label for="cpConfirm">${t('confirmNewPasswordChangeLabel')}</label>
         <div class="pw-wrap">
-          <input id="cpConfirm" type="password" minlength="6" required autocomplete="new-password" placeholder="Re-enter new password">
+          <input id="cpConfirm" type="password" minlength="6" required autocomplete="new-password" placeholder="${t('confirmPasswordPlaceholder')}">
           <button class="pw-toggle-btn" type="button" aria-label="Toggle password visibility" data-target="cpConfirm">👁️</button>
         </div>
       </div>
 
       <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; border-top: 1px solid var(--border); padding-top: 14px;">
-        <button class="btn light" type="button" id="btnCancelChangePw">Cancel</button>
-        <button class="btn primary" type="submit" id="btnSubmitChangePw">Update Password</button>
+        <button class="btn light" type="button" id="btnCancelChangePw">${t('cancelBtn')}</button>
+        <button class="btn primary" type="submit" id="btnSubmitChangePw">${t('updatePasswordBtn')}</button>
       </div>
     </form>
     `
@@ -585,11 +593,11 @@ export function openAppPreferencesModal(onSaved) {
     (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true);
 
   openModal(
-    'Language & App Preferences',
+    t('appPreferencesTitle'),
     `
     <form id="appPreferencesForm">
       <div class="field">
-        <label for="prefLanguage">Preferred Language / भाषा निवडा / भाषा चुनें</label>
+        <label for="prefLanguage">${t('preferredLanguageSetting')}</label>
         <select id="prefLanguage">
           <option value="en" ${currentLang === 'en' ? 'selected' : ''}>English</option>
           <option value="hi" ${currentLang === 'hi' ? 'selected' : ''}>हिन्दी (Hindi)</option>
@@ -602,7 +610,7 @@ export function openAppPreferencesModal(onSaved) {
         <p class="muted" style="font-size: 0.78rem; margin: 0 0 8px;">
           ${isStandalone ? '✅ Running in standalone application mode on this device.' : 'Install MediKey on your device home screen for quick offline access and fast startup.'}
         </p>
-        ${!isStandalone ? '<button class="btn secondary sm" id="btnInstallFromPref" type="button">📲 Install MediKey App</button>' : ''}
+        ${!isStandalone ? `<button class="btn secondary sm" id="btnInstallFromPref" type="button">${t('menuInstallApp')}</button>` : ''}
       </div>
 
       <div class="notice" style="margin: 14px 0; font-size: 0.8rem;">
@@ -610,8 +618,8 @@ export function openAppPreferencesModal(onSaved) {
       </div>
 
       <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px;">
-        <button class="btn light" type="button" id="btnCancelPref">Cancel</button>
-        <button class="btn primary" type="submit" id="btnSavePref">Save Preferences</button>
+        <button class="btn light" type="button" id="btnCancelPref">${t('cancelBtn')}</button>
+        <button class="btn primary" type="submit" id="btnSavePref">${t('saveChangesBtn')}</button>
       </div>
     </form>
     `

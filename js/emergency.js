@@ -3,7 +3,7 @@
  */
 
 import { supabase } from './supabase-client.js';
-import { $, $$, toast, openModal, closeModal, escapeHTML } from './utils.js';
+import { $, $$, toast, openModal, closeModal, escapeHTML, t } from './utils.js';
 import { getCurrentUser } from './auth.js';
 import { getCurrentProfile, openProfileEditor } from './profile.js';
 
@@ -43,7 +43,7 @@ export function updateEmergencyContactDisplay(contacts) {
       callBtn.classList.remove('hidden');
     }
   } else {
-    if (contactDisplay) contactDisplay.textContent = 'No emergency contact saved. Add one in Edit Profile.';
+    if (contactDisplay) contactDisplay.textContent = t('noEmergencyContactSaved');
     if (callBtn) {
       callBtn.classList.add('hidden');
       callBtn.removeAttribute('href');

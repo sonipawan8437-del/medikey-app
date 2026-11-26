@@ -72,13 +72,13 @@
         <!-- Dedicated Pre-verified Demo Account Box for Instant Review -->
         <div class="demo-account-box">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
-            <span style="font-size: 0.76rem; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.4px;">🧪 Verified Demo Patient</span>
+            <span data-i18n="demoBadge" style="font-size: 0.76rem; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.4px;">🧪 Verified Demo Patient</span>
           </div>
-          <p class="muted" style="margin: 0 0 8px; font-size: 0.78rem;">
+          <p class="muted" data-i18n="demoSubtitle" style="margin: 0 0 8px; font-size: 0.78rem;">
             Instant access without waiting for email verification quotas:
           </p>
           <button class="btn secondary full" id="btnFillDemoCreds" type="button" style="font-size: 0.8rem; min-height: 40px; white-space: normal; line-height: 1.35; padding: 8px;">
-            Fill Demo Credentials<br><small style="font-size: 0.72rem; color: var(--text-secondary);">(demo.patient@medikey.local)</small>
+            <span id="txtFillDemoCreds" data-i18n="fillDemoCreds">Fill Demo Credentials</span><br><small style="font-size: 0.72rem; color: var(--text-secondary);">(demo.patient@medikey.local)</small>
           </button>
         </div>
       </div>
@@ -242,9 +242,9 @@
         <div class="mobile-welcome-header">
           <div class="welcome-info">
             <h1 id="welcomeGreeting">Hello, Patient</h1>
-            <p id="welcomeHealthId">Digital Healthcare Pass · Verified</p>
+            <p id="welcomeHealthId" data-i18n="digitalPassVerified">Digital Healthcare Pass · Verified</p>
           </div>
-          <div class="status" id="homeSyncStatus">● Active</div>
+          <div class="status" id="homeSyncStatus" data-i18n="activeSync">● Active</div>
         </div>
 
         <!-- Optional Lightweight Profile Completion Guide (First-Time UX) -->
@@ -256,8 +256,8 @@
             <!-- 2. Digital Medical ID Card -->
             <div class="digital-id-pass" id="digitalIdCard">
               <div class="id-pass-top">
-                <div class="id-pass-brand">✚ MediKey Health ID</div>
-                <button class="settings" id="settingsBtn" type="button" aria-label="Open Settings">⚙ Settings</button>
+                <div class="id-pass-brand" data-i18n="idCardBrand">✚ MediKey Health ID</div>
+                <button class="settings" id="settingsBtn" type="button" aria-label="Open Settings" data-i18n="settingsBtn">⚙ Settings</button>
               </div>
               <div class="id-pass-main">
                 <div class="id-pass-patient">
@@ -270,7 +270,7 @@
                 <!-- Local QR Preview Box -->
                 <button class="qr-box" id="qrBtn" type="button" title="View scannable pass and configure emergency consent">
                   <div id="qrPreviewContainer" class="qr-preview-canvas" aria-label="Offline QR preview"></div>
-                  <small>Share ID ↗</small>
+                  <small data-i18n="shareIdBtn">Share ID ↗</small>
                 </button>
               </div>
               <!-- Critical Health Alerts Badges -->
@@ -282,48 +282,48 @@
             <!-- 3. Emergency SOS Quick Bar -->
             <div class="emergency-quick-bar">
               <div class="emergency-bar-header">
-                <h3>🛡️ Emergency Health Summary</h3>
-                <button class="btn danger sm" id="emergencyBtn" type="button">Details →</button>
+                <h3 data-i18n="emergencySummaryTitle">🛡️ Emergency Health Summary</h3>
+                <button class="btn danger sm" id="emergencyBtn" type="button" data-i18n="detailsBtn">Details →</button>
               </div>
-              <p class="emergency-summary-text" id="emergencySummary">Loading emergency details...</p>
+              <p class="emergency-summary-text" id="emergencySummary" data-i18n="loadingEmergencyDetails">Loading emergency details...</p>
               <div class="emergency-bar-actions">
-                <a id="callEmergencyBtn" class="call-link hidden" href="#">☎ Call Emergency Contact</a>
-                <button class="btn light sm" id="editEmergencyContactBtn" type="button">Add / Edit Contact</button>
+                <a id="callEmergencyBtn" class="call-link hidden" href="#" data-i18n="callEmergencyContact">☎ Call Emergency Contact</a>
+                <button class="btn light sm" id="editEmergencyContactBtn" type="button" data-i18n="addEditContact">Add / Edit Contact</button>
               </div>
-              <small id="emergencyContactDisplay" style="color:var(--text-secondary); font-size:0.75rem;">No emergency contact saved.</small>
+              <small id="emergencyContactDisplay" data-i18n="noEmergencyContactSaved" style="color:var(--text-secondary); font-size:0.75rem;">No emergency contact saved.</small>
             </div>
 
             <!-- 4. Clinical Priority Previews -->
             <!-- Upcoming Appointments Card -->
             <div class="clinical-card appointments-card">
               <div class="clinical-card-header">
-                <h3>📅 Upcoming Appointments</h3>
-                <button class="btn light sm" id="btnManageAppointments" type="button">＋ Add Appointment</button>
+                <h3 data-i18n="upcomingAppointments">📅 Upcoming Appointments</h3>
+                <button class="btn light sm" id="btnManageAppointments" type="button" data-i18n="addAppointment">＋ Add Appointment</button>
               </div>
               <div id="homeAppointmentsPreview">
-                <div class="clinical-card-empty">No scheduled doctor visits yet.</div>
+                <div class="clinical-card-empty" data-i18n="noAppointments">No scheduled doctor visits yet.</div>
               </div>
             </div>
 
             <!-- Active Prescriptions Preview -->
             <div class="clinical-card prescriptions-card">
               <div class="clinical-card-header">
-                <h3>💊 Active Prescriptions</h3>
-                <button class="btn light sm" id="btnManagePrescriptions" type="button">＋ Add Medicine</button>
+                <h3 data-i18n="activePrescriptions">💊 Active Prescriptions</h3>
+                <button class="btn light sm" id="btnManagePrescriptions" type="button" data-i18n="addMedicine">＋ Add Medicine</button>
               </div>
               <div id="homePrescriptionsPreview">
-                <div class="clinical-card-empty">No active prescriptions entered yet.</div>
+                <div class="clinical-card-empty" data-i18n="noPrescriptions">No active prescriptions entered yet.</div>
               </div>
             </div>
 
             <!-- Recent Documents Preview -->
             <div class="clinical-card documents-card">
               <div class="clinical-card-header">
-                <h3>📄 Recent Documents</h3>
-                <button class="btn light sm" id="btnManageDocuments" type="button">＋ Upload Document</button>
+                <h3 data-i18n="recentDocuments">📄 Recent Documents</h3>
+                <button class="btn light sm" id="btnManageDocuments" type="button" data-i18n="uploadDocument">＋ Upload Document</button>
               </div>
               <div id="homeDocumentsPreview">
-                <div class="clinical-card-empty">No medical documents uploaded to vault yet.</div>
+                <div class="clinical-card-empty" data-i18n="noDocuments">No medical documents uploaded to vault yet.</div>
               </div>
             </div>
           </div>

@@ -4,7 +4,7 @@
  * STRICT SECURITY: Never caches private medical records, Supabase API calls, or auth tokens.
  */
 
-const CACHE_NAME = 'medikey-shell-v6';
+const CACHE_NAME = 'medikey-shell-v7';
 
 const STATIC_ASSETS = [
   './',
@@ -19,6 +19,7 @@ const STATIC_ASSETS = [
   './js/qr.js',
   './js/emergency.js',
   './js/utils.js',
+  './js/i18n.js',
   './assets/vendor/qrcode.min.js',
   './assets/vendor/html5-qrcode.min.js',
   './assets/vendor/supabase.min.js',

@@ -3,7 +3,7 @@
  */
 
 import { supabase } from './supabase-client.js';
-import { $, toast, openModal, closeModal, escapeHTML } from './utils.js';
+import { $, toast, openModal, closeModal, escapeHTML, t } from './utils.js';
 import { getCurrentUser } from './auth.js';
 import { getCurrentProfile } from './profile.js';
 
@@ -494,11 +494,11 @@ export async function add600DpiToPngBlob(blob) {
 
 export async function openPVCCardModal(activeShare, shareUrl) {
   openModal(
-    'Branded Emergency QR PVC Card',
+    t('pvcCardTitle'),
     `
     <div style="text-align: center; padding: 20px;">
       <div class="upload-progress-bar" style="width: 100%;"></div>
-      <p class="muted" style="margin-top: 12px;">Generating 600 DPI print-ready CR80 card...</p>
+      <p class="muted" style="margin-top: 12px;">${t('pvcCardSubtitle')}</p>
     </div>
     `
   );
@@ -518,7 +518,7 @@ export async function openPVCCardModal(activeShare, shareUrl) {
     : 'Valid until revoked';
 
   openModal(
-    'Branded Emergency QR PVC Card',
+    t('pvcCardTitle'),
     `
     <div style="text-align: center;">
       <!-- Interactive Preview -->
@@ -528,7 +528,7 @@ export async function openPVCCardModal(activeShare, shareUrl) {
 
       <!-- Card specs -->
       <p class="muted" style="font-size: 0.8rem; margin: 0 0 10px;">
-        Standard CR80 Portrait (53.98 × 85.60 mm) • 1275 × 2022 px (600 DPI)
+        ${t('pvcCardSubtitle')}
       </p>
 
       <!-- Token validity disclosure -->
@@ -541,10 +541,10 @@ export async function openPVCCardModal(activeShare, shareUrl) {
 
       <!-- Action buttons -->
       <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
-        <button class="btn primary" id="btnDownloadPVCPNG" type="button">📥 Download PNG (600 DPI)</button>
-        <button class="btn secondary" id="btnDownloadPVCPDF" type="button">📄 Print-Ready PDF (CR80)</button>
-        <button class="btn light" id="btnSharePVCCard" type="button">📲 Share Card</button>
-        <button class="btn light" id="btnBackToPass" type="button">↩ Back to Settings</button>
+        <button class="btn primary" id="btnDownloadPVCPNG" type="button">📥 ${t('downloadPngBtn')}</button>
+        <button class="btn secondary" id="btnDownloadPVCPDF" type="button">📄 ${t('downloadPdfBtn')}</button>
+        <button class="btn light" id="btnSharePVCCard" type="button">📲 ${t('copyPassLinkBtn')}</button>
+        <button class="btn light" id="btnBackToPass" type="button">↩ ${t('back')}</button>
       </div>
     </div>
     `
