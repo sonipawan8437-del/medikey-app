@@ -128,20 +128,30 @@ async function main() {
     liveMeta.themeColor.toLowerCase() === '#2563eb';
   console.log(`Live Theme Verification: ${themeMatches ? '✅ PASS' : '❌ FAIL'}`);
 
-  // 2. Authenticate Live with Synthetic Account
-  console.log('\n[2/6] Authenticating on Live Production with Synthetic Test Account...');
+  // 2. Authenticate Live with Synthetic Account via Login Form
+  console.log('\n[2/6] Authenticating on Live Production with Synthetic Test Account via Login Form...');
   const loginRes = await evalInPage(`(async () => {
-    const { loginUser } = await import('./js/auth.js');
     try {
-      const user = await loginUser('synthetic.patient1@medikey.local', 'P@ssword2026!SecureMedical');
-      return { success: true, email: user.email, id: user.id };
+      document.querySelector('#loginEmail').value = 'synthetic.patient1@medikey.local';
+      document.querySelector('#loginPassword').value = 'P@ssword2026!SecureMedical';
+      document.querySelector('#loginForm button[type="submit"]').click();
+      
+      // Wait for appScreen to become visible
+      for (let i = 0; i < 20; i++) {
+        await new Promise(r => setTimeout(r, 300));
+        const appScreen = document.querySelector('#appScreen');
+        if (appScreen && !appScreen.classList.contains('hidden')) {
+          return { success: true, authenticated: true };
+        }
+      }
+      return { success: false, error: 'Timeout waiting for dashboard transition' };
     } catch (e) {
       return { success: false, error: e.message };
     }
   })()`);
 
   console.log('Live login result:', loginRes);
-  await sleep(2000);
+  await sleep(1500);
 
   // 3. Test Refresh Flicker-Free State Machine on Live Site
   console.log('\n[3/6] Testing Authenticated Page Refresh on Live Production (Zero-Flicker Guarantee)...');
