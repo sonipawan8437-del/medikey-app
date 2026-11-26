@@ -581,6 +581,8 @@ export function openChangePasswordModal() {
 export function openAppPreferencesModal(onSaved) {
   const user = getCurrentUser();
   const currentLang = localStorage.getItem('medikey_lang') || 'en';
+  const isStandalone = (typeof window !== 'undefined') &&
+    (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true);
 
   openModal(
     'Language & App Preferences',
@@ -593,6 +595,14 @@ export function openAppPreferencesModal(onSaved) {
           <option value="hi" ${currentLang === 'hi' ? 'selected' : ''}>हिन्दी (Hindi)</option>
           <option value="mr" ${currentLang === 'mr' ? 'selected' : ''}>मराठी (Marathi)</option>
         </select>
+      </div>
+
+      <div style="margin: 14px 0; padding-top: 14px; border-top: 1px solid var(--border);">
+        <strong style="font-size: 0.84rem; display: block; margin-bottom: 4px;">PWA Application Mode</strong>
+        <p class="muted" style="font-size: 0.78rem; margin: 0 0 8px;">
+          ${isStandalone ? '✅ Running in standalone application mode on this device.' : 'Install MediKey on your device home screen for quick offline access and fast startup.'}
+        </p>
+        ${!isStandalone ? '<button class="btn secondary sm" id="btnInstallFromPref" type="button">📲 Install MediKey App</button>' : ''}
       </div>
 
       <div class="notice" style="margin: 14px 0; font-size: 0.8rem;">
@@ -608,6 +618,16 @@ export function openAppPreferencesModal(onSaved) {
   );
 
   $('#btnCancelPref').onclick = closeModal;
+
+  const installBtn = $('#btnInstallFromPref');
+  if (installBtn) {
+    installBtn.onclick = () => {
+      closeModal();
+      if (typeof window.medikeyPromptInstall === 'function') {
+        window.medikeyPromptInstall();
+      }
+    };
+  }
 
   $('#appPreferencesForm').onsubmit = async e => {
     e.preventDefault();

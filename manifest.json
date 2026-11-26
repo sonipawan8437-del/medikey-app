@@ -1,21 +1,81 @@
 {
-  "name": "MediKey | Digital Medical ID",
+  "id": "/?source=pwa",
+  "name": "MediKey — Digital Medical ID",
   "short_name": "MediKey",
-  "description": "Digital Medical ID and Healthcare Emergency Pass",
-  "start_url": "./index.html",
+  "description": "Secure digital medical ID, emergency health pass, and encrypted personal health records vault.",
+  "start_url": "./index.html?source=pwa",
+  "scope": "./",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#F8FAFC",
   "theme_color": "#2563EB",
+  "categories": [
+    "medical",
+    "health",
+    "utilities"
+  ],
   "icons": [
     {
       "src": "assets/icons/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "assets/icons/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/icons/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "assets/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Scan Emergency QR",
+      "short_name": "Scan QR",
+      "description": "Scan patient emergency medical QR pass",
+      "url": "./index.html?action=scan",
+      "icons": [
+        {
+          "src": "assets/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "My Medical ID",
+      "short_name": "Medical ID",
+      "description": "View verified patient digital healthcare pass",
+      "url": "./index.html?action=id",
+      "icons": [
+        {
+          "src": "assets/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Emergency Contacts",
+      "short_name": "ICE Contacts",
+      "description": "Quick access to ICE emergency contacts",
+      "url": "./index.html?action=contacts",
+      "icons": [
+        {
+          "src": "assets/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
     }
   ]
 }

@@ -8,7 +8,11 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="MediKey">
   <title>MediKey | Digital Medical ID & Health Management</title>
+  <link rel="icon" type="image/svg+xml" href="assets/icons/icon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/icons/favicon-32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/icons/apple-touch-icon.png">
   <link rel="stylesheet" href="css/style.css">
   <link rel="manifest" href="manifest.json">
 </head>
@@ -219,6 +223,7 @@
             <button type="button" id="menuProfile">♙ View Profile Overview</button>
             <button type="button" id="editBtn">✎ Edit Full Profile</button>
             <button type="button" id="menuPersonal">👤 Personal Identity & Photo</button>
+            <button type="button" id="menuInstallApp" class="hidden">📲 Install MediKey App</button>
             <button type="button" id="privacyBtn">🔒 Privacy & Architecture</button>
             <button type="button" id="logoutBtn" style="color:var(--emergency);">↪ Logout</button>
           </nav>
@@ -652,6 +657,38 @@
 
   <!-- Toast Notification -->
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <!-- Branded Offline Overlay -->
+  <div id="offlineOverlay" class="offline-overlay hidden" role="alert" aria-live="assertive">
+    <div class="offline-card">
+      <div class="offline-logo" aria-hidden="true">✚</div>
+      <h2>MediKey</h2>
+      <h3>You're offline</h3>
+      <p class="muted">Connect to the internet to access your medical information.</p>
+      <div class="offline-actions">
+        <button class="btn primary full" id="btnRetryOffline" type="button">🔄 Retry Connection</button>
+        <a href="tel:112" class="btn danger full" style="text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px;">🚨 Call Emergency 112</a>
+      </div>
+      <div class="offline-status-text">
+        <span>● Status: Offline (No internet detected)</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controlled PWA Smart Update Notification Banner -->
+  <div id="pwaUpdateBanner" class="pwa-update-banner hidden" role="status" aria-live="polite">
+    <div class="update-banner-content">
+      <div class="update-icon" aria-hidden="true">⚡</div>
+      <div class="update-text">
+        <strong>New version available</strong>
+        <span class="muted">Update to get the latest features.</span>
+      </div>
+    </div>
+    <div class="update-banner-actions">
+      <button class="btn primary sm" id="btnPwaUpdateNow" type="button">Update Now</button>
+      <button class="btn light sm" id="btnPwaUpdateLater" type="button">Later</button>
+    </div>
+  </div>
 
   <!-- Local Vendor Scripts (100% Offline Capable) -->
   <script src="assets/vendor/qrcode.min.js"></script>

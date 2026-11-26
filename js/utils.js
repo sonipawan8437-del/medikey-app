@@ -55,6 +55,13 @@ export function openModal(title, htmlContent, onClose) {
     backdrop.removeAttribute('inert');
     backdrop.setAttribute('aria-hidden', 'false');
 
+    // Android back navigation support: push modal state if not already open
+    try {
+      if (!window.history.state || !window.history.state.medikeyModal) {
+        window.history.pushState({ medikeyModal: true }, '');
+      }
+    } catch (e) {}
+
     // 3. Prevent background scrolling
     document.body.style.overflow = 'hidden';
 
@@ -116,8 +123,17 @@ export function openModal(title, htmlContent, onClose) {
   }
 }
 
-export function closeModal() {
+export function closeModal(triggerHistoryBack = true) {
   const backdrop = $('#modalBackdrop');
+
+  // Pop modal history state if closing via UI button and not via popstate
+  if (triggerHistoryBack) {
+    try {
+      if (window.history.state && window.history.state.medikeyModal) {
+        window.history.back();
+      }
+    } catch (e) {}
+  }
 
   // 1. Remove keyboard trap listener
   if (backdrop && modalKeydownHandler) {
@@ -343,6 +359,16 @@ export function applyLanguage(lang) {
       b.textContent = '';
       if (icon) b.appendChild(icon);
       b.append(' ' + label);
+    }
+  });
+}
+
+// Android physical / swipe back button support: dismiss open modal without page unload
+if (typeof window !== 'undefined') {
+  window.addEventListener('popstate', () => {
+    const backdrop = $('#modalBackdrop');
+    if (backdrop && backdrop.classList.contains('open')) {
+      closeModal(false);
     }
   });
 }

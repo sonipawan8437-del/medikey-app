@@ -1257,17 +1257,279 @@ function showPrivacyInfo() {
 }
 
 // ----------------------------------------------------------------------------
+// Advanced PWA: Installation, Smart Updates, Offline & Shortcuts Management
+// ----------------------------------------------------------------------------
+let deferredInstallPrompt = null;
+let newWorkerWaiting = null;
+
+export function isStandaloneMode() {
+  return (typeof window !== 'undefined') && (
+    window.matchMedia('(display-mode: standalone)').matches ||
+    window.navigator.standalone === true ||
+    document.referrer.includes('android-app://')
+  );
+}
+
+export function isIosDevice() {
+  const ua = window.navigator.userAgent.toLowerCase();
+  return /iphone|ipad|ipod/.test(ua);
+}
+
+export function updateInstallUiState() {
+  const btn = $('#menuInstallApp');
+  if (!btn) return;
+  if (isStandaloneMode()) {
+    btn.classList.add('hidden');
+  } else {
+    btn.classList.remove('hidden');
+  }
+}
+
+export function openIosInstallModal() {
+  openModal(
+    'Install MediKey on iOS',
+    `
+    <div style="text-align: left; padding: 4px 0;">
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 14px;">
+        <img src="assets/icons/icon-192.png" width="48" height="48" style="border-radius: 12px;" alt="MediKey">
+        <div>
+          <strong style="display: block; font-size: 0.95rem;">Install MediKey on iPhone / iPad</strong>
+          <span class="muted" style="font-size: 0.8rem;">Add to your Home Screen for instant standalone access</span>
+        </div>
+      </div>
+      <ol style="margin: 0; padding-left: 20px; font-size: 0.88rem; line-height: 1.8;">
+        <li>Open <strong>MediKey</strong> in Safari.</li>
+        <li>Tap the <strong>Share</strong> button <span style="font-size: 1.1rem;">⎋</span> in the Safari toolbar.</li>
+        <li>Scroll down and tap <strong>Add to Home Screen</strong> <span style="font-size: 1.1rem;">⊞</span>.</li>
+        <li>Tap <strong>Add</strong> in the top-right corner to confirm.</li>
+      </ol>
+      <div class="notice" style="margin-top: 14px; font-size: 0.8rem;">
+        Once added, MediKey launches instantly from your home screen in full-screen standalone mode.
+      </div>
+      <div style="text-align: right; margin-top: 14px;">
+        <button class="btn primary sm" id="btnCloseIosInstall" type="button">Got It</button>
+      </div>
+    </div>
+    `
+  );
+  const btn = $('#btnCloseIosInstall');
+  if (btn) btn.onclick = closeModal;
+}
+
+export async function promptPWAInstall() {
+  if (isStandaloneMode()) {
+    toast('MediKey is already running in standalone mode.');
+    return;
+  }
+  if (deferredInstallPrompt) {
+    deferredInstallPrompt.prompt();
+    const { outcome } = await deferredInstallPrompt.userChoice;
+    if (outcome === 'accepted') {
+      toast('Thank you for installing MediKey!');
+    }
+    deferredInstallPrompt = null;
+    updateInstallUiState();
+    return;
+  }
+  if (isIosDevice()) {
+    openIosInstallModal();
+    return;
+  }
+  openModal(
+    'Install MediKey App',
+    `
+    <div style="text-align: center; padding: 10px;">
+      <img src="assets/icons/icon-192.png" width="64" height="64" style="border-radius: 16px; margin-bottom: 10px;" alt="MediKey">
+      <h3>Install MediKey</h3>
+      <p class="muted" style="margin: 0 0 14px; font-size: 0.86rem;">
+        Install MediKey on your device for instant access to your emergency medical ID, offline shell, and fast startup.
+      </p>
+      <div class="notice" style="text-align: left; font-size: 0.82rem;">
+        Click the <strong>Install</strong> icon in your browser address bar (⊕ or 📲), or open your browser menu and choose <strong>"Install MediKey"</strong>.
+      </div>
+      <button class="btn light" id="btnCloseGenericInstall" type="button" style="margin-top: 14px;">Close</button>
+    </div>
+    `
+  );
+  const closeBtn = $('#btnCloseGenericInstall');
+  if (closeBtn) closeBtn.onclick = closeModal;
+}
+
+if (typeof window !== 'undefined') {
+  window.medikeyPromptInstall = promptPWAInstall;
+}
+
+function initPwaInstallation() {
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    updateInstallUiState();
+  });
+
+  window.addEventListener('appinstalled', () => {
+    deferredInstallPrompt = null;
+    updateInstallUiState();
+    toast('MediKey installed successfully!');
+  });
+
+  $('#menuInstallApp')?.addEventListener('click', () => {
+    promptPWAInstall();
+  });
+
+  updateInstallUiState();
+}
+
+function isUserBusyWithCriticalTask() {
+  if (window.__medikey_is_uploading) return true;
+  const title = $('#modalTitle')?.textContent || '';
+  if ($('#modalBackdrop')?.classList.contains('open') && title.toLowerCase().includes('emergency')) {
+    return true;
+  }
+  const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+  if (['input', 'textarea'].includes(activeTag)) return true;
+  return false;
+}
+
+function showUpdateNotification(worker) {
+  newWorkerWaiting = worker;
+  const banner = $('#pwaUpdateBanner');
+  if (banner) banner.classList.remove('hidden');
+}
+
+function initPwaSmartUpdates(reg) {
+  if (!reg) return;
+
+  if (reg.waiting && navigator.serviceWorker.controller) {
+    showUpdateNotification(reg.waiting);
+  }
+
+  reg.addEventListener('updatefound', () => {
+    const installingWorker = reg.installing;
+    if (!installingWorker) return;
+
+    installingWorker.addEventListener('statechange', () => {
+      if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+        showUpdateNotification(installingWorker);
+      }
+    });
+  });
+
+  $('#btnPwaUpdateNow')?.addEventListener('click', () => {
+    if (newWorkerWaiting) {
+      newWorkerWaiting.postMessage({ type: 'SKIP_WAITING' });
+    }
+    $('#pwaUpdateBanner')?.classList.add('hidden');
+  });
+
+  $('#btnPwaUpdateLater')?.addEventListener('click', () => {
+    $('#pwaUpdateBanner')?.classList.add('hidden');
+  });
+
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (refreshing) return;
+    if (isUserBusyWithCriticalTask()) {
+      console.log('[PWA] Postponing refresh: user engaged in critical task.');
+      return;
+    }
+    refreshing = true;
+    window.location.reload();
+  });
+}
+
+function initNetworkAndOfflineExperience() {
+  const updateNetUi = () => {
+    const isOnline = navigator.onLine;
+    const badge = $('#networkStatus');
+
+    if (badge) {
+      if (isOnline) {
+        badge.textContent = '● Secure Cloud';
+        badge.className = 'online-badge';
+      } else {
+        badge.textContent = '○ Offline';
+        badge.className = 'offline-badge';
+      }
+    }
+  };
+
+  window.addEventListener('online', () => {
+    toast('Internet connection restored.');
+    $('#offlineOverlay')?.classList.add('hidden');
+    updateNetUi();
+    const user = getCurrentUser();
+    if (user) syncDashboardData(user);
+  });
+
+  window.addEventListener('offline', () => {
+    toast('You are currently offline.');
+    updateNetUi();
+  });
+
+  $('#btnRetryOffline')?.addEventListener('click', () => {
+    if (navigator.onLine) {
+      $('#offlineOverlay')?.classList.add('hidden');
+      toast('Internet reconnected.');
+      const user = getCurrentUser();
+      if (user) syncDashboardData(user);
+    } else {
+      toast('Still offline. Please check your WiFi or mobile data.');
+    }
+  });
+
+  updateNetUi();
+}
+
+function handleAppShortcuts() {
+  const searchParams = new URLSearchParams(window.location.search);
+  const action = searchParams.get('action');
+  if (!action) return;
+
+  const cleanUrl = window.location.pathname + window.location.hash;
+  window.history.replaceState(null, '', cleanUrl);
+
+  switch (action) {
+    case 'scan':
+      switchView('Scan');
+      break;
+    case 'id':
+      switchView('Home');
+      break;
+    case 'contacts':
+      const user = getCurrentUser();
+      if (user) {
+        openEmergencyContactsModal();
+      } else {
+        toast('Please sign in to view your emergency contacts.');
+      }
+      break;
+  }
+}
+
+// ----------------------------------------------------------------------------
 // Application Bootstrap
 // ----------------------------------------------------------------------------
 async function bootstrap() {
   initEventListeners();
+  initPwaInstallation();
+  initNetworkAndOfflineExperience();
+
+  // Fast Emergency Route Bypass: If URL is an emergency share, bypass full auth init
+  const hash = window.location.hash || '';
+  if (hash.startsWith('#emergency-share=')) {
+    handleUrlRouting();
+    setAuthState(AUTH_STATES.UNAUTHENTICATED);
+    return;
+  }
 
   // State 1: Keep startup splash visible, keep auth & app screens hidden
   setAuthState(AUTH_STATES.INITIALIZING);
 
-  // Register PWA Service Worker
+  // Register PWA Service Worker with Smart Updates Hook
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js').catch(err => {
+    navigator.serviceWorker.register('./sw.js').then(reg => {
+      initPwaSmartUpdates(reg);
+    }).catch(err => {
       console.warn('PWA ServiceWorker registration failed:', err);
     });
   }
@@ -1283,8 +1545,9 @@ async function bootstrap() {
     });
   }
 
-  // Handle incoming hash routing
+  // Handle incoming hash routing and PWA app shortcuts
   handleUrlRouting();
+  handleAppShortcuts();
 
   // If a password recovery session is active, keep user on recovery panel
   if (isRecoverySessionActive) {
