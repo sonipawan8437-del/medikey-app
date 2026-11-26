@@ -43,6 +43,7 @@ export function openModal(title, htmlContent, onClose) {
   $('#modalContent').innerHTML = htmlContent;
   $('#modalBackdrop').classList.add('open');
   $('#modalBackdrop').setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden'; // Prevent background scrolling on mobile
 
   const firstInteractive = $('#modalContent input, #modalContent button, #modalContent select, #modalContent textarea');
   if (firstInteractive) {
@@ -62,6 +63,7 @@ export function closeModal() {
     backdrop.classList.remove('open');
     backdrop.setAttribute('aria-hidden', 'true');
   }
+  document.body.style.overflow = ''; // Restore background scrolling
   const content = $('#modalContent');
   if (content) content.innerHTML = '';
   if (lastActiveElement && typeof lastActiveElement.focus === 'function') {

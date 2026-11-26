@@ -146,6 +146,102 @@ export function openEmergencyContactsModal(onUpdate) {
   render();
 }
 
+export function openEmergencyConfirmationModal() {
+  const p = getCurrentProfile();
+  const primary = getPrimaryEmergencyContact();
+
+  openModal(
+    '🚨 Emergency Assistance & SOS',
+    `
+    <div style="text-align: center; margin-bottom: 14px;">
+      <div style="font-size: 2.2rem; margin-bottom: 6px;">🚑</div>
+      <h3 style="margin: 0; color: var(--red-900);">Emergency Call Confirmation</h3>
+      <p class="muted" style="margin: 4px 0 0; font-size: 0.82rem;">
+        Prevent accidental calls. Select an action below:
+      </p>
+    </div>
+
+    <div style="display: grid; gap: 10px; margin-bottom: 16px;">
+      <a href="tel:112" class="btn full" style="background: var(--emergency); color: #fff; min-height: 48px; font-size: 0.95rem; font-weight: 850; text-decoration: none; border-radius: var(--radius-md);">
+        🚨 Call 112 (National Emergency)
+      </a>
+
+      ${primary && primary.phone ? `
+        <a href="tel:${escapeHTML(primary.phone.replace(/[^+\d]/g, ''))}" class="btn full" style="background: var(--green-700); color: #fff; min-height: 48px; font-size: 0.9rem; font-weight: 800; text-decoration: none; border-radius: var(--radius-md);">
+          ☎ Call Primary ICE: ${escapeHTML(primary.name)} (${escapeHTML(primary.phone)})
+        </a>
+      ` : `
+        <button class="btn light full" id="sosAddContactBtn" type="button" style="font-size: 0.84rem;">
+          ＋ Add Emergency Contact
+        </button>
+      `}
+
+      <button class="btn secondary full" id="sosHospitalMapBtn" type="button">
+        🏥 Locate Nearby Trauma Centers
+      </button>
+    </div>
+
+    <!-- Live GPS Coordinates Box for 911 / 112 Dispatchers -->
+    <div style="background: var(--bg-subtle); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 10px 12px; margin-bottom: 12px; font-size: 0.82rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+        <strong style="color: var(--teal-900);">📍 Your Current Location (For First Responders):</strong>
+      </div>
+      <div id="sosGpsCoordinates" style="font-family: ui-monospace, monospace; color: var(--text-muted); font-size: 0.78rem;">
+        Acquiring GPS coordinates...
+      </div>
+    </div>
+
+    <div class="notice danger" style="margin: 0 0 12px; font-size: 0.78rem;">
+      <strong>Note:</strong> MediKey provides personal healthcare records. It does not automatically dispatch first responders. Dialing 112 will connect you to local dispatchers.
+    </div>
+
+    <div style="display: flex; justify-content: flex-end;">
+      <button class="btn light full" id="sosCancelBtn" type="button">Dismiss</button>
+    </div>
+    `
+  );
+
+  $('#sosCancelBtn').onclick = closeModal;
+
+  const addContactBtn = $('#sosAddContactBtn');
+  if (addContactBtn) {
+    addContactBtn.onclick = () => {
+      closeModal();
+      openEmergencyContactsModal(contacts => updateEmergencyContactDisplay(contacts));
+    };
+  }
+
+  const hospBtn = $('#sosHospitalMapBtn');
+  if (hospBtn) {
+    hospBtn.onclick = () => {
+      closeModal();
+      findNearbyHospitals();
+    };
+  }
+
+  // Request GPS position for reading out to first responders
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        const coordsEl = $('#sosGpsCoordinates');
+        if (coordsEl) {
+          coordsEl.innerHTML = `<strong>Lat:</strong> ${pos.coords.latitude.toFixed(5)}, <strong>Lon:</strong> ${pos.coords.longitude.toFixed(5)} <br><span style="color:var(--green-700);">● High accuracy GPS location locked</span>`;
+        }
+      },
+      err => {
+        const coordsEl = $('#sosGpsCoordinates');
+        if (coordsEl) {
+          coordsEl.textContent = 'GPS location unavailable (permission denied or timeout).';
+        }
+      },
+      { enableHighAccuracy: true, timeout: 8000 }
+    );
+  } else {
+    const coordsEl = $('#sosGpsCoordinates');
+    if (coordsEl) coordsEl.textContent = 'Geolocation not supported on this device.';
+  }
+}
+
 export function openEmergencyCardModal() {
   const p = getCurrentProfile();
   const primary = getPrimaryEmergencyContact();

@@ -63,32 +63,52 @@ export function openDocumentSection(title, category, description, onUpdate) {
   function render() {
     const itemsHtml = list.length
       ? list.map(doc => `
-        <div class="crud-card" data-id="${escapeHTML(doc.id)}">
-          <div class="crud-card-body">
-            <span class="doc-badge ${escapeHTML(doc.category)}">${escapeHTML(doc.category)}</span>
-            <strong style="margin-top: 4px;">📄 ${escapeHTML(doc.title)}</strong>
-            <p class="muted" style="margin: 2px 0;">${escapeHTML(doc.file_name)} (${formatBytes(doc.file_size)})</p>
-            ${doc.notes ? `<p class="muted">${escapeHTML(doc.notes)}</p>` : ''}
-            <small class="muted">Date: ${escapeHTML(doc.document_date || new Date().toISOString().slice(0, 10))}</small>
+        <div class="record-card" data-id="${escapeHTML(doc.id)}">
+          <div class="record-body">
+            <span class="record-badge ${escapeHTML(doc.category)}">${escapeHTML(doc.category)}</span>
+            <strong>📄 ${escapeHTML(doc.title)}</strong>
+            <p>${escapeHTML(doc.file_name)} · <span>${formatBytes(doc.file_size)}</span></p>
+            ${doc.notes ? `<p style="color:var(--text-muted); font-size:0.75rem;">${escapeHTML(doc.notes)}</p>` : ''}
+            <div class="record-meta">Date: ${escapeHTML(doc.document_date || new Date().toISOString().slice(0, 10))}</div>
           </div>
-          <div class="crud-card-actions">
-            <button class="btn light sm btn-download-doc" data-path="${escapeHTML(doc.file_path)}" data-name="${escapeHTML(doc.file_name)}" title="Generate secure signed download URL">📥 View / Download</button>
+          <div class="record-actions">
+            <button class="btn light sm btn-download-doc" data-path="${escapeHTML(doc.file_path)}" data-name="${escapeHTML(doc.file_name)}" title="Generate secure signed download URL">📥 View</button>
             <button class="btn danger sm btn-delete-doc" data-id="${escapeHTML(doc.id)}" data-path="${escapeHTML(doc.file_path)}" title="Delete document">🗑</button>
           </div>
         </div>
       `).join('')
-      : '<p class="muted">No files uploaded in this category yet.</p>';
+      : '<p class="clinical-card-empty">No files uploaded in this category yet.</p>';
 
     openModal(
       title,
       `
-      <p class="muted">${escapeHTML(description)}</p>
+      <p class="muted" style="margin-top:0;">${escapeHTML(description)}</p>
 
-      <form id="uploadDocForm" style="margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid var(--line);">
+      <form id="uploadDocForm" style="margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px solid var(--border);">
         <div class="field">
-          <label for="docFile">Choose Medical File (PDF, PNG, JPG - up to 10 MB) *</label>
-          <input id="docFile" type="file" required accept=".pdf,image/png,image/jpeg,image/jpg">
+          <label>Select Document (PDF, PNG, JPG - up to 10 MB) *</label>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <label class="btn secondary sm" style="cursor: pointer; flex: 1;">
+              📁 Choose File / Photo
+              <input id="docFile" type="file" accept=".pdf,image/png,image/jpeg,image/jpg" class="sr-only">
+            </label>
+            <label class="btn light sm" style="cursor: pointer; flex: 1;">
+              📷 Camera Capture
+              <input id="docFileCamera" type="file" accept="image/*" capture="environment" class="sr-only">
+            </label>
+          </div>
+          <div id="selectedFilePreview" class="hidden" style="margin-top: 8px; padding: 10px; background: var(--bg-subtle); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+              <span id="previewFileIcon" style="font-size: 1.4rem;">📄</span>
+              <div style="min-width: 0;">
+                <strong id="previewFileName" style="display: block; font-size: 0.8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">filename.pdf</strong>
+                <small id="previewFileSize" style="color: var(--text-tertiary); font-size: 0.72rem;">0 KB</small>
+              </div>
+            </div>
+            <button type="button" id="btnClearSelectedFile" class="btn light sm" style="min-height: 28px; padding: 2px 8px; font-size: 0.72rem;">✕</button>
+          </div>
         </div>
+
         <div class="field">
           <label for="docTitle">Document Name / Title *</label>
           <input id="docTitle" required placeholder="e.g. Complete Blood Count (CBC) Report">
@@ -106,26 +126,57 @@ export function openDocumentSection(title, category, description, onUpdate) {
           <div class="upload-progress-bar" id="uploadProgressBar"></div>
         </div>
 
-        <button class="btn primary" type="submit" id="btnUploadDoc">⬆ Upload to Private Vault</button>
+        <button class="btn primary full" type="submit" id="btnUploadDoc" style="margin-top: 6px;">⬆ Upload to Private Vault</button>
       </form>
 
-      <h4>Saved Documents in Vault (${list.length})</h4>
+      <div class="section-heading" style="margin-top: 0;">
+        <h3 style="font-size: 0.95rem;">Saved Documents in Vault (${list.length})</h3>
+      </div>
       <div class="crud-list">${itemsHtml}</div>
       `
     );
 
-    $('#docFile').onchange = e => {
-      const file = e.target.files[0];
-      if (file && !$('#docTitle').value) {
+    let activeSelectedFile = null;
+
+    const handleFileChosen = file => {
+      if (!file) return;
+      activeSelectedFile = file;
+
+      const previewBox = $('#selectedFilePreview');
+      const nameEl = $('#previewFileName');
+      const sizeEl = $('#previewFileSize');
+      const iconEl = $('#previewFileIcon');
+
+      if (previewBox) {
+        previewBox.classList.remove('hidden');
+        if (nameEl) nameEl.textContent = file.name;
+        if (sizeEl) sizeEl.textContent = formatBytes(file.size);
+        if (iconEl) iconEl.textContent = file.type.startsWith('image/') ? '🖼️' : '📄';
+      }
+
+      if ($('#docTitle') && !$('#docTitle').value) {
         const cleanName = file.name.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' ');
         $('#docTitle').value = cleanName;
       }
     };
 
+    if ($('#docFile')) $('#docFile').onchange = e => handleFileChosen(e.target.files[0]);
+    if ($('#docFileCamera')) $('#docFileCamera').onchange = e => handleFileChosen(e.target.files[0]);
+
+    const clearBtn = $('#btnClearSelectedFile');
+    if (clearBtn) {
+      clearBtn.onclick = () => {
+        activeSelectedFile = null;
+        if ($('#docFile')) $('#docFile').value = '';
+        if ($('#docFileCamera')) $('#docFileCamera').value = '';
+        if ($('#selectedFilePreview')) $('#selectedFilePreview').classList.add('hidden');
+      };
+    }
+
     $('#uploadDocForm').onsubmit = async e => {
       e.preventDefault();
-      const file = $('#docFile').files[0];
-      if (!file) return toast('Please select a file to upload.');
+      const file = activeSelectedFile || ($('#docFile') && $('#docFile').files[0]) || ($('#docFileCamera') && $('#docFileCamera').files[0]);
+      if (!file) return toast('Please select or capture a file to upload.');
 
       if (file.size > 10 * 1024 * 1024) {
         return toast('File is too large. Maximum size is 10 MB.');
@@ -151,7 +202,7 @@ export function openDocumentSection(title, category, description, onUpdate) {
 
         const docRow = {
           user_id: user.id,
-          title: $('#docTitle').value.trim(),
+          title: $('#docTitle').value.trim() || file.name,
           category: category,
           file_path: filePath,
           file_name: file.name,

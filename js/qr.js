@@ -306,9 +306,93 @@ export async function resolveAndShowEmergencyShare(token) {
 export function stopQRScanner() {
   if (qrScannerInstance) {
     try {
-      qrScannerInstance.stop().then(() => qrScannerInstance.clear()).catch(() => {});
+      qrScannerInstance.stop().then(() => {
+        try { qrScannerInstance.clear(); } catch (e) {}
+      }).catch(() => {});
     } catch (e) {}
     qrScannerInstance = null;
+  }
+}
+
+export function startInlineQRScanner(targetElementId = 'reader', onDecoded = null) {
+  stopQRScanner();
+
+  const container = $(`#${targetElementId}`);
+  if (!container) return;
+
+  if (!window.Html5Qrcode) {
+    container.innerHTML = '<div class="notice danger">Local QR scanner engine is unavailable.</div>';
+    return;
+  }
+
+  container.innerHTML = '';
+
+  try {
+    qrScannerInstance = new Html5Qrcode(targetElementId);
+    qrScannerInstance.start(
+      { facingMode: 'environment' },
+      {
+        fps: 10,
+        qrbox: { width: 220, height: 220 },
+        aspectRatio: 1.0
+      },
+      decodedText => {
+        stopQRScanner();
+        if (typeof onDecoded === 'function') {
+          onDecoded(decodedText);
+        } else {
+          handleScannedCode(decodedText);
+        }
+      },
+      () => {}
+    ).catch(err => {
+      console.warn('Camera scan failed or permission denied:', err);
+      const isDenied = String(err).toLowerCase().includes('permission') || String(err).toLowerCase().includes('denied');
+      container.innerHTML = `
+        <div style="padding: 24px 16px; text-align: center; color: var(--text-muted);">
+          <div style="font-size: 2.2rem; margin-bottom: 8px;">📷</div>
+          <strong style="color: var(--teal-900); display: block; margin-bottom: 4px;">
+            ${isDenied ? 'Camera Permission Denied' : 'Camera Unavailable'}
+          </strong>
+          <p style="font-size: 0.8rem; margin: 0 0 14px;">
+            ${isDenied ? 'Please grant camera access in your browser settings to scan patient QR passes.' : 'Could not initialize camera hardware.'}
+          </p>
+          <label class="btn secondary sm" style="cursor: pointer; display: inline-flex;">
+            🖼️ Scan from Image File
+            <input type="file" id="inlineScanFileInput" accept="image/*" class="sr-only">
+          </label>
+        </div>
+      `;
+
+      const fileInput = $('#inlineScanFileInput');
+      if (fileInput) {
+        fileInput.onchange = e => {
+          if (e.target.files && e.target.files[0]) {
+            scanQRCodeFromFile(e.target.files[0], onDecoded);
+          }
+        };
+      }
+    });
+  } catch (e) {
+    container.innerHTML = `<div class="notice danger">Scanner error: ${escapeHTML(e.message)}</div>`;
+  }
+}
+
+export async function scanQRCodeFromFile(file, onDecoded = null) {
+  if (!file || !window.Html5Qrcode) return;
+  try {
+    toast('Scanning image for MediKey QR...');
+    const html5QrCode = new Html5Qrcode('qrFileScannerHelper' + Date.now(), { verbose: false });
+    const decodedText = await html5QrCode.scanFile(file, true);
+    if (decodedText) {
+      if (typeof onDecoded === 'function') {
+        onDecoded(decodedText);
+      } else {
+        handleScannedCode(decodedText);
+      }
+    }
+  } catch (err) {
+    toast('No valid QR code found in the selected image.');
   }
 }
 
@@ -324,31 +408,14 @@ export function openQRScannerModal() {
     `
   );
 
-  if (!window.Html5Qrcode) {
-    $('#reader').innerHTML = '<div class="notice danger">Local QR scanner engine could not start.</div>';
-    return;
-  }
-
-  try {
-    qrScannerInstance = new Html5Qrcode('reader');
-    qrScannerInstance.start(
-      { facingMode: 'environment' },
-      { fps: 10, qrbox: { width: 230, height: 230 } },
-      decodedText => {
-        stopQRScanner();
-        closeModal();
-        handleScannedCode(decodedText);
-      },
-      () => {}
-    ).catch(err => {
-      $('#reader').innerHTML = `<div class="notice danger">Camera access unavailable: ${escapeHTML(err)}</div>`;
-    });
-  } catch (e) {
-    $('#reader').innerHTML = `<div class="notice danger">Scanner error: ${escapeHTML(e.message)}</div>`;
-  }
+  startInlineQRScanner('reader', decodedText => {
+    closeModal();
+    handleScannedCode(decodedText);
+  });
 }
 
-function handleScannedCode(text) {
+export function handleScannedCode(text) {
+  if (!text) return;
   if (text.includes('#emergency-share=')) {
     const token = text.split('#emergency-share=')[1];
     resolveAndShowEmergencyShare(token);

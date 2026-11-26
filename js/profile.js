@@ -50,41 +50,54 @@ export function updateProfileBannerUI(profile, primaryContact) {
   const p = profile || currentProfile;
   if (!p) return;
 
-  $('#displayName').textContent = p.full_name || 'Patient';
-  $('#displayId').textContent = `Health ID: ${p.health_id}`;
+  const fullName = p.full_name || 'Patient';
+  const healthId = p.health_id || '—';
 
-  const av = $('#avatar');
-  if (p.avatar_url) {
-    av.innerHTML = `<img src="${escapeHTML(p.avatar_url)}" alt="Avatar">`;
-  } else {
-    const initials = (p.full_name || 'MK')
-      .split(/\s+/)
-      .map(n => n[0])
-      .join('')
-      .slice(0, 2)
-      .toUpperCase();
-    av.textContent = initials;
-  }
+  if ($('#displayName')) $('#displayName').textContent = fullName;
+  if ($('#displayId')) $('#displayId').textContent = `Health ID: ${healthId}`;
+  if ($('#welcomeGreeting')) $('#welcomeGreeting').textContent = `Hello, ${fullName}`;
+  if ($('#welcomeHealthId')) $('#welcomeHealthId').textContent = `Digital Healthcare Pass · ID: ${healthId}`;
+  if ($('#profileTabName')) $('#profileTabName').textContent = fullName;
+  if ($('#profileTabId')) $('#profileTabId').textContent = `Health ID: ${healthId}`;
+
+  const initials = fullName
+    .split(/\s+/)
+    .map(n => n[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase() || 'MK';
+
+  ['#avatar', '#profileTabAvatar'].forEach(selector => {
+    const el = $(selector);
+    if (!el) return;
+    if (p.avatar_url) {
+      el.innerHTML = `<img src="${escapeHTML(p.avatar_url)}" alt="Avatar">`;
+    } else {
+      el.textContent = initials;
+    }
+  });
 
   // Critical Alerts Badges
   const badgeContainer = $('#criticalAlerts');
   if (badgeContainer) {
     badgeContainer.innerHTML = '';
     if (p.blood_group && p.blood_group !== 'Unknown') {
-      badgeContainer.innerHTML += `<span class="badge-tag blood">🩸 Blood: ${escapeHTML(p.blood_group)}</span>`;
+      badgeContainer.innerHTML += `<span class="pass-tag blood">🩸 Blood: ${escapeHTML(p.blood_group)}</span>`;
     }
     if (p.allergies) {
-      badgeContainer.innerHTML += `<span class="badge-tag allergy">⚠️ Allergy: ${escapeHTML(p.allergies)}</span>`;
+      badgeContainer.innerHTML += `<span class="pass-tag allergy">⚠️ Allergy: ${escapeHTML(p.allergies)}</span>`;
     }
     if (p.chronic_conditions) {
-      badgeContainer.innerHTML += `<span class="badge-tag condition">⚕️ ${escapeHTML(p.chronic_conditions)}</span>`;
+      badgeContainer.innerHTML += `<span class="pass-tag condition">⚕️ ${escapeHTML(p.chronic_conditions)}</span>`;
     }
   }
 
   // Emergency summary card
   const contactText = primaryContact ? `${escapeHTML(primaryContact.name)} (${escapeHTML(primaryContact.phone)})` : 'Not entered';
   const allergyText = p.allergies ? escapeHTML(p.allergies) : 'None reported';
-  $('#emergencySummary').innerHTML = `<strong>ICE:</strong> ${contactText} &nbsp;|&nbsp; <strong>Allergies:</strong> ${allergyText}`;
+  if ($('#emergencySummary')) {
+    $('#emergencySummary').innerHTML = `<strong>ICE:</strong> ${contactText} &nbsp;|&nbsp; <strong>Allergies:</strong> ${allergyText}`;
+  }
 }
 
 export function openProfileEditor(onProfileSaved) {

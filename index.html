@@ -2,18 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="description" content="MediKey | Digital Healthcare Identification & Personal Health Records Pass">
-  <meta name="theme-color" content="#123575">
+  <meta name="theme-color" content="#0d5c75">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <title>MediKey | Digital Medical ID & Health Management</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
 
-  <!-- Demo Disclaimer Banner (HIPAA / Privacy Safety Compliance Notice) -->
+  <!-- Demo Disclaimer Banner (HIPAA / Cloud Status Notice) -->
   <aside class="demo-banner" role="alert" aria-label="Database and system status notice">
-    <span id="systemBannerText">⚡ <strong>MediKey Cloud:</strong> Connected to Supabase Backend (PostgreSQL + Auth + Storage).</span>
+    <span id="systemBannerText">⚡ <strong>MediKey Cloud:</strong> Supabase Connected (PostgreSQL · Auth · Private Storage).</span>
   </aside>
 
   <!-- Non-blocking Accessible Splash Screen -->
@@ -34,32 +37,82 @@
         <span>MediKey</span>
       </div>
 
+      <!-- Mobile Segmented Auth Switcher -->
+      <div class="auth-tab-bar" role="tablist" aria-label="Authentication Options">
+        <button class="auth-tab-btn active" id="tabBtnLogin" type="button" role="tab" aria-selected="true">Sign In</button>
+        <button class="auth-tab-btn" id="tabBtnRegister" type="button" role="tab" aria-selected="false">Create Account</button>
+      </div>
+
       <!-- Realtime Feedback / Rate Limit Alert Banner -->
       <div id="authAlertBanner" class="auth-alert-banner hidden" role="alert"></div>
 
+      <!-- Login Panel -->
+      <div id="loginPanel">
+        <h1>Welcome back</h1>
+        <p class="muted">Sign in to access your personal medical ID and health records.</p>
+        <form id="loginForm" novalidate>
+          <div class="field">
+            <label for="loginEmail">Email address *</label>
+            <input id="loginEmail" type="email" required autocomplete="username" inputmode="email" placeholder="name@example.com">
+          </div>
+          <div class="field">
+            <label for="loginPassword">Password *</label>
+            <div class="pw-wrap">
+              <input id="loginPassword" type="password" required autocomplete="current-password" placeholder="Your password">
+              <button class="pw-toggle-btn" type="button" aria-label="Toggle password visibility" data-target="loginPassword">👁️</button>
+            </div>
+          </div>
+          <button class="btn primary full" type="submit" style="margin-top: 10px;">Sign In</button>
+        </form>
+
+        <div class="auth-links">
+          <button class="link" id="forgotBtn" type="button">Forgot password?</button>
+          <button class="link" id="showRegister" type="button">New patient? Register</button>
+        </div>
+
+        <!-- Dedicated Pre-verified Demo Account Box for Instant Review -->
+        <div class="demo-account-box">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+            <span style="font-size: 0.76rem; font-weight: 800; color: var(--teal-700); text-transform: uppercase; letter-spacing: 0.4px;">🧪 Verified Demo Patient</span>
+          </div>
+          <p class="muted" style="margin: 0 0 8px; font-size: 0.78rem;">
+            Instant access without waiting for email verification quotas:
+          </p>
+          <button class="btn secondary full" id="btnFillDemoCreds" type="button" style="font-size: 0.8rem; min-height: 40px; white-space: normal; line-height: 1.35; padding: 8px;">
+            Fill Demo Credentials<br><small style="font-size: 0.72rem; color: var(--text-tertiary);">(demo.patient@medikey.local)</small>
+          </button>
+        </div>
+      </div>
+
       <!-- Registration Panel -->
-      <div id="registerPanel">
+      <div id="registerPanel" class="hidden">
         <h1>Create your account</h1>
-        <p class="muted">Register to create your personal MediKey Digital Health ID.</p>
+        <p class="muted">Register to generate your unique MediKey Digital Health ID.</p>
         <form id="registerForm" novalidate>
           <div class="field">
             <label for="regName">Full name *</label>
-            <input id="regName" required maxlength="70" autocomplete="name" placeholder="e.g. John Doe">
+            <input id="regName" required maxlength="70" autocomplete="name" placeholder="e.g. Alex Morgan">
           </div>
           <div class="field">
             <label for="regEmail">Email address *</label>
-            <input id="regEmail" type="email" required autocomplete="email" placeholder="name@example.com">
+            <input id="regEmail" type="email" required autocomplete="email" inputmode="email" placeholder="name@example.com">
           </div>
           <div class="field">
             <label for="regPassword">Create password *</label>
-            <input id="regPassword" type="password" minlength="6" required autocomplete="new-password" placeholder="At least 6 characters">
+            <div class="pw-wrap">
+              <input id="regPassword" type="password" minlength="6" required autocomplete="new-password" placeholder="At least 6 characters">
+              <button class="pw-toggle-btn" type="button" aria-label="Toggle password visibility" data-target="regPassword">👁️</button>
+            </div>
           </div>
           <div class="field">
             <label for="regConfirm">Confirm password *</label>
-            <input id="regConfirm" type="password" minlength="6" required autocomplete="new-password" placeholder="Repeat your password">
+            <div class="pw-wrap">
+              <input id="regConfirm" type="password" minlength="6" required autocomplete="new-password" placeholder="Repeat your password">
+              <button class="pw-toggle-btn" type="button" aria-label="Toggle password visibility" data-target="regConfirm">👁️</button>
+            </div>
           </div>
           <div class="field">
-            <label for="regLanguage">Choose your language / अपनी भाषा चुनें / भाषा निवडा</label>
+            <label for="regLanguage">Preferred language / भाषा निवडा / भाषा चुनें</label>
             <select id="regLanguage" required>
               <option value="en">English</option>
               <option value="hi">हिन्दी (Hindi)</option>
@@ -74,48 +127,14 @@
         </div>
       </div>
 
-      <!-- Login Panel -->
-      <div id="loginPanel" class="hidden">
-        <h1>Welcome back</h1>
-        <p class="muted">Sign in to access your MediKey healthcare dashboard.</p>
-        <form id="loginForm" novalidate>
-          <div class="field">
-            <label for="loginEmail">Email address *</label>
-            <input id="loginEmail" type="email" required autocomplete="username" placeholder="name@example.com">
-          </div>
-          <div class="field">
-            <label for="loginPassword">Password *</label>
-            <input id="loginPassword" type="password" required autocomplete="current-password" placeholder="Your password">
-          </div>
-          <button class="btn primary full" type="submit" style="margin-top: 10px;">Sign In</button>
-        </form>
-        <div class="auth-links">
-          <button class="link" id="forgotBtn" type="button">Forgot password?</button>
-          <button class="link" id="showRegister" type="button">Create account</button>
-        </div>
-
-        <!-- Dedicated Pre-verified Demo Account for Reviewers -->
-        <div class="demo-account-box" style="margin-top: 16px; padding: 12px; background: #f8fafc; border: 1px dashed #cbd5e1; border-radius: 8px;">
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-            <span style="font-size: 0.78rem; font-weight: 700; color: #0284c7; text-transform: uppercase; letter-spacing: 0.5px;">🧪 Verified Demo Account</span>
-          </div>
-          <p class="muted" style="margin: 0 0 8px; font-size: 0.78rem;">
-            Instant pre-verified patient access without waiting for SMTP email confirmation:
-          </p>
-          <button class="btn secondary full" id="btnFillDemoCreds" type="button" style="font-size: 0.8rem; padding: 6px 10px;">
-            Fill Demo Credentials (demo.patient@medikey.local)
-          </button>
-        </div>
-      </div>
-
-      <!-- Forgot Password Panel (Supabase Secure Email Reset) -->
+      <!-- Forgot Password Panel -->
       <div id="forgotPanel" class="hidden">
         <h1>Reset password</h1>
         <p class="muted">Enter your registered email address to receive a secure recovery link.</p>
         <form id="resetForm" novalidate>
           <div class="field">
             <label for="resetEmail">Registered email *</label>
-            <input id="resetEmail" type="email" required placeholder="name@example.com">
+            <input id="resetEmail" type="email" required inputmode="email" placeholder="name@example.com">
           </div>
           <button class="btn primary full" type="submit" style="margin-top: 10px;">Send Recovery Email</button>
         </form>
@@ -124,7 +143,7 @@
         </div>
       </div>
 
-      <!-- Update Password Panel (Triggered after clicking email recovery link) -->
+      <!-- Update Password Panel -->
       <div id="updatePasswordPanel" class="hidden">
         <h1>Set new password</h1>
         <p class="muted">Enter your new secure password below.</p>
@@ -141,26 +160,33 @@
         </form>
       </div>
 
-      <div class="notice">
-        <strong>🔒 Supabase Cloud Security:</strong> User credentials are encrypted and authenticated via Supabase Auth with Row-Level Security (RLS) enforcement.
+      <div class="notice" style="margin-top: 16px;">
+        <strong>🔒 Supabase Cloud Security:</strong> Encrypted credentials with Row-Level Security (RLS) enforcement.
       </div>
     </div>
   </section>
 
   <!-- Main Application Screen -->
   <div id="appScreen" class="hidden">
-    <!-- Sticky Top Navigation Bar -->
+    <!-- Compact Mobile Top App Bar -->
     <header class="topbar">
-      <div class="brand">
+      <div class="brand" id="topBrand">
         <div class="brand-mark" aria-hidden="true">✚</div>
-        <span>MediKey</span>
+        <span id="topBarTitle">MediKey</span>
       </div>
+
+      <button id="btnTopBack" class="btn-top-back hidden" type="button" aria-label="Go back">
+        ← Back
+      </button>
+
       <div class="top-actions">
-        <span id="networkStatus" class="online-badge">● Cloud Sync</span>
-        <a href="tel:112" class="btn-sos" id="sosCallBtn" title="Dial National Emergency Number 112 (India)" aria-label="Call emergency 112">🚨 SOS 112</a>
+        <span id="networkStatus" class="online-badge">● Cloud</span>
+        <button class="btn-sos" id="sosCallBtn" type="button" title="Emergency SOS" aria-label="Emergency SOS">
+          🚨 SOS
+        </button>
         <div class="menu-wrap">
-          <button class="menu-trigger" id="menuToggle" type="button" aria-label="Open navigation menu" aria-expanded="false" title="Menu">⋮</button>
-          <nav class="menu-panel" id="topMenu" role="menu" aria-label="MediKey user actions">
+          <button class="menu-trigger" id="menuToggle" type="button" aria-label="Open menu" aria-expanded="false" title="Menu">⋮</button>
+          <nav class="menu-panel" id="topMenu" role="menu" aria-label="User navigation">
             <div class="menu-label">LANGUAGE / भाषा</div>
             <select id="appLanguage" aria-label="Choose application language">
               <option value="en">English</option>
@@ -171,7 +197,7 @@
             <button type="button" id="editBtn">✎ Edit Profile</button>
             <button type="button" id="menuPersonal">▣ Personal Info</button>
             <button type="button" id="privacyBtn">🔒 Privacy & Architecture</button>
-            <button type="button" id="logoutBtn" style="color:var(--red);">↪ Logout</button>
+            <button type="button" id="logoutBtn" style="color:var(--emergency);">↪ Logout</button>
           </nav>
         </div>
       </div>
@@ -179,177 +205,342 @@
 
     <!-- Main Container -->
     <main class="wrap">
-      <!-- Welcome Hero Section -->
-      <section class="welcome">
-        <div>
-          <div class="eyebrow">Your Digital Healthcare Pass</div>
-          <h1>Your health, in one place.</h1>
-          <p class="subtitle">Organize essential health details and make emergency information instantly accessible to first responders.</p>
+
+      <!-- ==================================================================
+           VIEW 1: Mobile Home Dashboard (Patient Priorities)
+           ================================================================== -->
+      <section id="viewHome" class="app-view active" aria-label="Patient Dashboard">
+        <!-- 1. Welcome & Cloud Status -->
+        <div class="mobile-welcome-header">
+          <div class="welcome-info">
+            <h1 id="welcomeGreeting">Hello, Patient</h1>
+            <p id="welcomeHealthId">Digital Healthcare Pass · Verified</p>
+          </div>
+          <div class="status" id="homeSyncStatus">● Active</div>
         </div>
-        <div class="status">● Account Active & Verified</div>
+
+        <!-- 2. Digital Medical ID Card -->
+        <div class="digital-id-pass" id="digitalIdCard">
+          <div class="id-pass-top">
+            <div class="id-pass-brand">✚ MediKey Health ID</div>
+            <button class="settings" id="settingsBtn" type="button" aria-label="Settings">⚙ Settings</button>
+          </div>
+          <div class="id-pass-main">
+            <div class="id-pass-patient">
+              <div class="avatar" id="avatar" aria-label="User avatar">MK</div>
+              <div class="id-pass-details">
+                <h2 id="displayName">Patient</h2>
+                <p id="displayId">Health ID: —</p>
+              </div>
+            </div>
+            <!-- Local QR Preview Box -->
+            <button class="qr-box" id="qrBtn" type="button" title="View scannable pass and configure emergency consent">
+              <div id="qrPreviewContainer" class="qr-preview-canvas" aria-label="Offline QR preview"></div>
+              <small>Share ID ↗</small>
+            </button>
+          </div>
+          <!-- Critical Health Alerts Badges -->
+          <div class="id-pass-footer" id="criticalAlerts" aria-label="Critical alerts">
+            <!-- Populated dynamically: Blood, Allergies, Chronic conditions -->
+          </div>
+        </div>
+
+        <!-- 3. Emergency SOS Quick Bar -->
+        <div class="emergency-quick-bar">
+          <div class="emergency-bar-header">
+            <h3>🛡️ Emergency Health Summary</h3>
+            <button class="btn danger sm" id="emergencyBtn" type="button">Details →</button>
+          </div>
+          <p class="emergency-summary-text" id="emergencySummary">Loading emergency details...</p>
+          <div class="emergency-bar-actions">
+            <a id="callEmergencyBtn" class="call-link hidden" href="#">☎ Call Emergency Contact</a>
+            <button class="btn light sm" id="editEmergencyContactBtn" type="button">Add / Edit Contact</button>
+          </div>
+          <small id="emergencyContactDisplay" style="color:var(--text-muted); font-size:0.75rem;">No emergency contact saved.</small>
+        </div>
+
+        <!-- 4. Quick Actions Grid -->
+        <div class="section-heading">
+          <h2>Quick Actions</h2>
+          <span class="badge">Healthcare</span>
+        </div>
+        <div class="quick-action-grid">
+          <button class="quick-card" data-section="Medical Records" type="button">
+            <div class="quick-card-icon">📁</div>
+            <div class="quick-card-body">
+              <strong>Records</strong>
+              <small>Vault documents</small>
+            </div>
+          </button>
+          <button class="quick-card" data-section="Prescriptions" type="button">
+            <div class="quick-card-icon">💊</div>
+            <div class="quick-card-body">
+              <strong>Medicines</strong>
+              <small>Dosage & notes</small>
+            </div>
+          </button>
+          <button class="quick-card" data-quick="appointments" type="button">
+            <div class="quick-card-icon">📅</div>
+            <div class="quick-card-body">
+              <strong>Visits</strong>
+              <small>Appointments</small>
+            </div>
+          </button>
+          <button class="quick-card" data-quick="medical-kit" type="button">
+            <div class="quick-card-icon">🩹</div>
+            <div class="quick-card-body">
+              <strong>Medical Kit</strong>
+              <small>First aid supplies</small>
+            </div>
+          </button>
+          <button class="quick-card" data-section="Share Health ID" type="button">
+            <div class="quick-card-icon">▦</div>
+            <div class="quick-card-body">
+              <strong>Share ID</strong>
+              <small>Consented QR</small>
+            </div>
+          </button>
+          <button class="quick-card" data-section="Add Health Note" type="button">
+            <div class="quick-card-icon">📝</div>
+            <div class="quick-card-body">
+              <strong>Health Log</strong>
+              <small>Daily symptoms</small>
+            </div>
+          </button>
+          <button class="quick-card" data-section="Scan QR Code" type="button">
+            <div class="quick-card-icon">📷</div>
+            <div class="quick-card-body">
+              <strong>Scan Pass</strong>
+              <small>Verify MediKey</small>
+            </div>
+          </button>
+          <button class="quick-card" data-section="Emergency Card" type="button">
+            <div class="quick-card-icon">🚑</div>
+            <div class="quick-card-body">
+              <strong>ICE Card</strong>
+              <small>First-responder</small>
+            </div>
+          </button>
+        </div>
+
+        <!-- 5. Clinical Priority Previews -->
+        <!-- Upcoming Appointments Card -->
+        <div class="clinical-card">
+          <div class="clinical-card-header">
+            <h3>📅 Upcoming Appointments</h3>
+            <button class="btn light sm" id="btnManageAppointments" type="button">＋ Add / View</button>
+          </div>
+          <div id="homeAppointmentsPreview">
+            <div class="clinical-card-empty">No scheduled doctor visits yet.</div>
+          </div>
+        </div>
+
+        <!-- Active Prescriptions Preview -->
+        <div class="clinical-card">
+          <div class="clinical-card-header">
+            <h3>💊 Active Prescriptions</h3>
+            <button class="btn light sm" id="btnManagePrescriptions" type="button">＋ Add / View</button>
+          </div>
+          <div id="homePrescriptionsPreview">
+            <div class="clinical-card-empty">No active prescriptions entered yet.</div>
+          </div>
+        </div>
+
+        <!-- Recent Documents Preview -->
+        <div class="clinical-card">
+          <div class="clinical-card-header">
+            <h3>📄 Recent Documents</h3>
+            <button class="btn light sm" id="btnManageDocuments" type="button">＋ Upload</button>
+          </div>
+          <div id="homeDocumentsPreview">
+            <div class="clinical-card-empty">No medical documents uploaded to vault yet.</div>
+          </div>
+        </div>
+
+        <!-- Nearby Hospitals Geolocation Card -->
+        <div class="clinical-card">
+          <div class="clinical-card-header">
+            <h3>🏥 Nearby Emergency Hospitals</h3>
+          </div>
+          <p style="margin: 0 0 10px; font-size: 0.84rem; color: var(--text-muted);">
+            Locate trauma centers near your GPS coordinates.
+          </p>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button class="btn primary sm" id="findHospitalsBtn" type="button">Find Nearby Hospitals</button>
+            <button class="btn light sm" id="openHospitalMapBtn" type="button">Open in Google Maps</button>
+          </div>
+          <div id="hospitalStatus" class="muted" style="margin-top: 8px; font-size: 0.8rem;">Tap above to locate emergency facilities.</div>
+          <iframe id="hospitalMap" class="hospital-map hidden" title="Nearby hospitals locator map" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>
+
+        <!-- Hidden Compatibility Tiles Container (Preserves all existing data-section tile bindings) -->
+        <div class="hidden">
+          <button class="tile" data-section="Personal Information" type="button">Personal Info</button>
+          <button class="tile" data-section="Medical Records" type="button">Medical Records</button>
+          <button class="tile" data-section="Medical History" type="button">Medical History</button>
+          <button class="tile" data-section="Prescriptions" type="button">Prescriptions</button>
+          <button class="tile" data-section="Lab Reports" type="button">Lab Reports</button>
+          <button class="tile" data-section="Medical Certificates" type="button">Certificates</button>
+          <button class="quick-item" data-section="Privacy & Safety" type="button">Privacy</button>
+        </div>
       </section>
 
-      <!-- Dashboard Grid -->
-      <div class="dashboard">
-        <!-- Main Column: Profile Card & Records -->
-        <section class="panel">
-          <!-- Profile Banner -->
-          <div class="profile-banner">
-            <div class="profile-heading">
-              <div class="mini-brand">✚ MediKey Health ID</div>
-              <button class="settings" id="settingsBtn" type="button">⚙ Settings</button>
-            </div>
-            <div class="profile-content">
-              <div class="person">
-                <div class="avatar" id="avatar" aria-label="User avatar">MK</div>
-                <div>
-                  <h2 id="displayName">User</h2>
-                  <p id="displayId">Health ID: —</p>
-                </div>
-              </div>
-              <!-- Local QR Box Button -->
-              <button class="qr-box" id="qrBtn" type="button" title="View, configure consent, or download emergency QR code">
-                <div id="qrPreviewContainer" class="qr-preview-canvas" aria-label="Personal offline QR preview"></div>
-                <small>Show / Share QR ↗</small>
-              </button>
-            </div>
+      <!-- ==================================================================
+           VIEW 2: Mobile Medical Records View
+           ================================================================== -->
+      <section id="viewRecords" class="app-view" aria-label="Medical Records Management">
+        <div class="records-filter-bar">
+          <div class="search-wrap">
+            <span class="search-icon" aria-hidden="true">🔍</span>
+            <input type="search" id="recordSearchInput" placeholder="Search records, medications, clinics..." aria-label="Search records">
+          </div>
+          <div class="chip-scroll" role="tablist" aria-label="Record Categories">
+            <button class="chip active" data-category="all" type="button">All Records</button>
+            <button class="chip" data-category="medical" type="button">Hospital Records</button>
+            <button class="chip" data-category="prescriptions" type="button">Prescriptions</button>
+            <button class="chip" data-category="labs" type="button">Lab Reports</button>
+            <button class="chip" data-category="certificates" type="button">Certificates</button>
+            <button class="chip" data-category="history" type="button">Medical History</button>
+            <button class="chip" data-category="notes" type="button">Health Notes</button>
+            <button class="chip" data-category="kit" type="button">Medical Kit</button>
+          </div>
+        </div>
+
+        <div id="recordsListContainer">
+          <!-- Dynamically populated record cards -->
+        </div>
+
+        <button class="fab-add" id="fabAddRecord" type="button" aria-label="Add new health record">＋</button>
+      </section>
+
+      <!-- ==================================================================
+           VIEW 3: Dedicated QR Scanner View
+           ================================================================== -->
+      <section id="viewScan" class="app-view" aria-label="QR Code Scanner">
+        <div class="scanner-container">
+          <h2 style="font-size: 1.25rem; font-weight: 850; color: var(--teal-900); margin: 0 0 4px;">
+            Scan MediKey Emergency Pass
+          </h2>
+          <p class="scanner-tips">
+            Point camera at another patient's MediKey QR pass to verify emergency health details.
+          </p>
+
+          <div class="scanner-viewfinder">
+            <div id="reader"></div>
           </div>
 
-          <!-- Profile Body -->
-          <div class="profile-body">
-            <!-- Critical Health Alert Badges Container -->
-            <div id="criticalAlerts" class="critical-alerts" aria-label="Critical medical alerts"></div>
-
-            <!-- Emergency Info Strip -->
-            <div class="emergency">
-              <div class="emergency-icon" aria-hidden="true">🛡️</div>
-              <div>
-                <h3>Emergency Health Summary</h3>
-                <p id="emergencySummary">Loading emergency details...</p>
-              </div>
-              <button class="btn-view" id="emergencyBtn" type="button">View Details →</button>
-            </div>
-
-            <!-- Health Records Section -->
-            <div class="section-title">
-              <h3>Your Health Records</h3>
-              <span class="muted">Structured Management</span>
-            </div>
-
-            <!-- 6 Feature Tiles -->
-            <div class="tiles">
-              <button class="tile" data-section="Personal Information" type="button">
-                <span class="tile-icon" aria-hidden="true">♙</span>
-                <strong>Personal Info</strong>
-                <small>Profile, blood group & contact</small>
-              </button>
-              <button class="tile" data-section="Medical Records" type="button">
-                <span class="tile-icon" aria-hidden="true">✚</span>
-                <strong>Medical Records</strong>
-                <small>Hospital documents & records</small>
-              </button>
-              <button class="tile" data-section="Medical History" type="button">
-                <span class="tile-icon" aria-hidden="true">◷</span>
-                <strong>Medical History</strong>
-                <small>Surgeries & family history</small>
-              </button>
-              <button class="tile" data-section="Prescriptions" type="button">
-                <span class="tile-icon" aria-hidden="true">℞</span>
-                <strong>Prescriptions</strong>
-                <small>Dosage, frequency & notes</small>
-              </button>
-              <button class="tile" data-section="Lab Reports" type="button">
-                <span class="tile-icon" aria-hidden="true">♧</span>
-                <strong>Lab Reports</strong>
-                <small>Diagnostic test reports</small>
-              </button>
-              <button class="tile" data-section="Medical Certificates" type="button">
-                <span class="tile-icon" aria-hidden="true">▤</span>
-                <strong>Certificates</strong>
-                <small>Fitness & vaccine passes</small>
-              </button>
-            </div>
-          </div>
-        </section>
-
-        <!-- Right Sidebar: Quick Actions, Emergency Contacts & Hospital Map -->
-        <aside class="panel side-panel">
-          <div class="side-head">
-            <h3>Quick Actions</h3>
-            <span class="badge">MediKey</span>
+          <div style="display: flex; gap: 8px; justify-content: center; margin-top: 12px; flex-wrap: wrap;">
+            <label class="btn secondary sm" style="cursor: pointer;">
+              📷 Scan from Photo
+              <input type="file" id="qrFileInput" accept="image/*" class="sr-only">
+            </label>
+            <button class="btn light sm" id="btnRestartScanner" type="button">Restart Camera</button>
           </div>
 
-          <div class="quick-list">
-            <button class="quick-item" data-section="Emergency Card" type="button">
-              <span class="quick-icon" aria-hidden="true">🚑</span>
-              <span><strong>Emergency Card</strong><small>Urgent first-responder pass</small></span>
-            </button>
-            <button class="quick-item" data-section="Share Health ID" type="button">
-              <span class="quick-icon" aria-hidden="true">▦</span>
-              <span><strong>Share Health ID</strong><small>Consented offline QR code</small></span>
-            </button>
-            <button class="quick-item" data-section="Add Health Note" type="button">
-              <span class="quick-icon" aria-hidden="true">＋</span>
-              <span><strong>Health Notes</strong><small>Daily blood sugar & symptom log</small></span>
-            </button>
-            <button class="quick-item" data-section="Scan QR Code" type="button">
-              <span class="quick-icon" aria-hidden="true">📷</span>
-              <span><strong>Scan QR Code</strong><small>Verify external MediKey pass</small></span>
-            </button>
-            <button class="quick-item" data-section="Privacy & Safety" type="button">
-              <span class="quick-icon" aria-hidden="true">🔒</span>
-              <span><strong>Privacy & Security</strong><small>Data architecture & roadmap</small></span>
-            </button>
+          <div class="notice" style="margin-top: 16px; text-align: left; max-width: 360px;">
+            <strong>🔒 Privacy First:</strong> Scans locally in your browser. Encrypted emergency tokens are verified via restricted Supabase RPC.
           </div>
+        </div>
+      </section>
 
-          <!-- Emergency Contact Panel -->
-          <section class="hospital-panel">
-            <h3 style="margin:0 0 6px;">🚑 In Case of Emergency (ICE)</h3>
-            <p id="emergencyContactDisplay">Add an emergency contact number in Edit Profile.</p>
-            <a id="callEmergencyBtn" class="call-link hidden" href="#">☎ Call Emergency Contact</a>
-            <div class="hospital-actions" style="margin-top: 10px;">
-              <button class="btn light sm" id="editEmergencyContactBtn" type="button">Add / Edit Contact</button>
-            </div>
-          </section>
+      <!-- ==================================================================
+           VIEW 4: Profile & Settings View
+           ================================================================== -->
+      <section id="viewProfile" class="app-view" aria-label="Patient Profile and Settings">
+        <div class="clinical-card" style="text-align: center; padding: 22px 16px; margin-bottom: 18px;">
+          <div class="avatar" id="profileTabAvatar" style="margin: 0 auto 10px; width: 76px; height: 76px; font-size: 1.8rem;">MK</div>
+          <h2 id="profileTabName" style="margin: 0 0 3px; font-size: 1.25rem; color: var(--teal-900);">Patient</h2>
+          <p id="profileTabId" style="margin: 0 0 12px; font-size: 0.85rem; color: var(--text-muted);">Health ID: —</p>
+          <button class="btn primary sm" id="btnEditProfileFromTab" type="button">✎ Edit Full Profile</button>
+        </div>
 
-          <!-- Nearby Hospitals Geolocation -->
-          <section class="hospital-panel">
-            <h3 style="margin:0 0 6px;">🏥 Nearby Emergency Hospitals</h3>
-            <p>Locate hospitals near your current coordinates. Location permission is required.</p>
-            <div class="hospital-actions">
-              <button class="btn primary sm" id="findHospitalsBtn" type="button">Find Nearby Hospitals</button>
-              <button class="btn light sm" id="openHospitalMapBtn" type="button">Open in Google Maps</button>
-            </div>
-            <div id="hospitalStatus" class="muted" style="margin-top:9px; font-size:.82rem;">Map not loaded yet.</div>
-            <iframe id="hospitalMap" class="hospital-map hidden" title="Nearby hospitals locator map" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-          </section>
+        <div class="settings-group">
+          <div class="settings-group-header">Health Identity & Medical Info</div>
+          <button class="settings-item" id="itemPersonal" type="button">
+            <span class="settings-item-label">
+              <span class="settings-item-icon">👤</span>
+              Personal & Contact Details
+            </span>
+            <span class="settings-item-arrow">›</span>
+          </button>
+          <button class="settings-item" id="itemMedicalHistory" type="button">
+            <span class="settings-item-label">
+              <span class="settings-item-icon">⚕️</span>
+              Medical & Surgical History
+            </span>
+            <span class="settings-item-arrow">›</span>
+          </button>
+          <button class="settings-item" id="itemICE" type="button">
+            <span class="settings-item-label">
+              <span class="settings-item-icon">🚑</span>
+              In Case of Emergency (ICE) Contacts
+            </span>
+            <span class="settings-item-arrow">›</span>
+          </button>
+        </div>
 
-          <!-- Privacy Policy Reminder -->
-          <div class="privacy-banner">
-            <strong>🔐 Privacy by Design:</strong> Emergency QR codes generated by MediKey only include fields you have explicitly consented to share.
-          </div>
-        </aside>
-      </div>
+        <div class="settings-group">
+          <div class="settings-group-header">Security, Privacy & Preferences</div>
+          <button class="settings-item" id="itemQRPass" type="button">
+            <span class="settings-item-label">
+              <span class="settings-item-icon">▦</span>
+              Manage Emergency QR Pass & Consent
+            </span>
+            <span class="settings-item-arrow">›</span>
+          </button>
+          <button class="settings-item" id="itemPrivacy" type="button">
+            <span class="settings-item-label">
+              <span class="settings-item-icon">🔒</span>
+              Supabase Cloud & Encryption Architecture
+            </span>
+            <span class="settings-item-arrow">›</span>
+          </button>
+        </div>
 
-      <!-- Mobile Bottom Navigation Bar -->
-      <nav class="bottom-nav" aria-label="Mobile bottom navigation">
-        <button class="nav-item active" data-nav="Home" type="button"><span>⌂</span>Home</button>
-        <button class="nav-item" data-nav="Appointments" type="button"><span>📅</span>Appointments</button>
-        <button class="nav-item" data-nav="Health ID" type="button"><span>▦</span>Health ID</button>
-        <button class="nav-item" data-nav="Medical Kit" type="button"><span>🩹</span>Medical Kit</button>
-        <button class="nav-item" data-nav="Profile" type="button"><span>♙</span>Profile</button>
-      </nav>
+        <div class="settings-group">
+          <button class="settings-item" id="itemLogout" type="button" style="color: var(--emergency);">
+            <span class="settings-item-label">
+              <span class="settings-item-icon" style="background: var(--red-50); color: var(--emergency);">↪</span>
+              Sign Out of MediKey
+            </span>
+            <span class="settings-item-arrow">›</span>
+          </button>
+        </div>
+      </section>
 
+      <!-- Footer -->
       <footer>
         MediKey — Digital Healthcare Identification Platform<br>
-        Phase 01 Core Foundation · Student & Healthcare Innovation Demo · For emergency dispatch dial 112 / 108 / 911
+        For urgent emergency dispatch dial 112 / 108 / 911
       </footer>
     </main>
+
+    <!-- Fixed Mobile Bottom Navigation Bar (4 Primary Native Destinations) -->
+    <nav class="bottom-nav" aria-label="Mobile Navigation">
+      <button class="nav-item active" data-nav="Home" type="button" aria-label="Home Dashboard">
+        <span>⌂</span>Home
+      </button>
+      <button class="nav-item" data-nav="Records" type="button" aria-label="Medical Records">
+        <span>📁</span>Records
+      </button>
+      <button class="nav-item" data-nav="Scan" type="button" aria-label="QR Code Scanner">
+        <span>📷</span>Scan
+      </button>
+      <button class="nav-item" data-nav="Profile" type="button" aria-label="Patient Profile">
+        <span>👤</span>Profile
+      </button>
+
+      <!-- Hidden compatibility buttons for existing code expecting Appointments / Health ID / Medical Kit -->
+      <button class="hidden" data-nav="Appointments" type="button">Appointments</button>
+      <button class="hidden" data-nav="Health ID" type="button">Health ID</button>
+      <button class="hidden" data-nav="Medical Kit" type="button">Medical Kit</button>
+    </nav>
   </div>
 
-  <!-- Accessible Modal Popup Container -->
+  <!-- Accessible Modal & Mobile Bottom Sheet Container -->
   <div class="backdrop" id="modalBackdrop" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modalTitle">
     <div class="modal">
+      <div class="sheet-handle" aria-hidden="true"></div>
       <div class="modal-top">
         <h2 id="modalTitle">Medical Details</h2>
         <button class="close" id="closeModal" type="button" aria-label="Close dialog">×</button>
@@ -361,7 +552,7 @@
   <!-- Toast Notification -->
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <!-- Local Vendor Scripts (100% Offline Capable - Cleanly Separated) -->
+  <!-- Local Vendor Scripts (100% Offline Capable) -->
   <script src="assets/vendor/qrcode.min.js"></script>
   <script src="assets/vendor/html5-qrcode.min.js"></script>
   <script src="assets/vendor/supabase.min.js"></script>
