@@ -212,7 +212,7 @@ function renderHomeAppointmentsPreview() {
   container.innerHTML = `
     <div class="mini-item-row" style="padding: 6px 0;">
       <div class="mini-item-content">
-        <strong style="font-size: 0.9rem; color: var(--teal-900);">🏥 ${escapeHTML(next.clinic_name)}</strong>
+        <strong style="font-size: 0.9rem; color: var(--text-main);">🏥 ${escapeHTML(next.clinic_name)}</strong>
         <p style="margin: 2px 0 0; font-size: 0.8rem; color: var(--text-muted);">
           Date: <strong>${escapeHTML(next.appointment_date)}</strong> ${next.appointment_time ? `at ${escapeHTML(next.appointment_time)}` : ''}
           ${next.reason ? `· <em>${escapeHTML(next.reason)}</em>` : ''}
@@ -220,7 +220,7 @@ function renderHomeAppointmentsPreview() {
       </div>
       <button class="btn light sm btn-open-apt-quick" type="button">Manage</button>
     </div>
-    ${apts.length > 1 ? `<div style="margin-top: 6px; font-size: 0.76rem; color: var(--teal-700); font-weight: 700;">＋ ${apts.length - 1} more visit${apts.length > 2 ? 's' : ''} scheduled</div>` : ''}
+    ${apts.length > 1 ? `<div style="margin-top: 6px; font-size: 0.76rem; color: var(--primary); font-weight: 700;">＋ ${apts.length - 1} more visit${apts.length > 2 ? 's' : ''} scheduled</div>` : ''}
   `;
 
   const manageBtn = container.querySelector('.btn-open-apt-quick');
@@ -248,7 +248,7 @@ function renderHomePrescriptionsPreview() {
       ${top3.map(rx => `
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border);">
           <div>
-            <strong style="font-size: 0.88rem; color: var(--teal-900);">💊 ${escapeHTML(rx.medication_name)}</strong>
+            <strong style="font-size: 0.88rem; color: var(--text-main);">💊 ${escapeHTML(rx.medication_name)}</strong>
             <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 1px;">
               ${escapeHTML(rx.dosage || 'Standard dose')} · ${escapeHTML(rx.frequency || 'As needed')}
             </div>
@@ -257,7 +257,7 @@ function renderHomePrescriptionsPreview() {
         </div>
       `).join('')}
     </div>
-    ${rxs.length > 3 ? `<div style="margin-top: 6px; font-size: 0.76rem; color: var(--teal-700); font-weight: 700;">＋ ${rxs.length - 3} more medication${rxs.length > 4 ? 's' : ''}</div>` : ''}
+    ${rxs.length > 3 ? `<div style="margin-top: 6px; font-size: 0.76rem; color: var(--primary); font-weight: 700;">＋ ${rxs.length - 3} more medication${rxs.length > 4 ? 's' : ''}</div>` : ''}
   `;
 }
 
@@ -279,7 +279,7 @@ function renderHomeDocumentsPreview() {
       ${top3.map(d => `
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border);">
           <div style="min-width: 0; flex: 1;">
-            <strong style="font-size: 0.88rem; color: var(--teal-900); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+            <strong style="font-size: 0.88rem; color: var(--text-main); display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
               📄 ${escapeHTML(d.title)}
             </strong>
             <small style="font-size: 0.75rem; color: var(--text-muted);">
@@ -292,7 +292,7 @@ function renderHomeDocumentsPreview() {
         </div>
       `).join('')}
     </div>
-    ${allDocs.length > 3 ? `<div style="margin-top: 6px; font-size: 0.76rem; color: var(--teal-700); font-weight: 700;">＋ ${allDocs.length - 3} more document${allDocs.length > 4 ? 's' : ''} in vault</div>` : ''}
+    ${allDocs.length > 3 ? `<div style="margin-top: 6px; font-size: 0.76rem; color: var(--primary); font-weight: 700;">＋ ${allDocs.length - 3} more document${allDocs.length > 4 ? 's' : ''} in vault</div>` : ''}
   `;
 
   container.querySelectorAll('.btn-quick-view-doc').forEach(btn => {
@@ -370,7 +370,7 @@ export function renderMobileRecordsList() {
     container.innerHTML = `
       <div class="clinical-card" style="text-align: center; padding: 36px 16px;">
         <div style="font-size: 2.2rem; margin-bottom: 8px;">📂</div>
-        <strong style="color: var(--teal-900); display: block; font-size: 1rem; margin-bottom: 4px;">No Records Found</strong>
+        <strong style="color: var(--text-main); display: block; font-size: 1rem; margin-bottom: 4px;">No Records Found</strong>
         <p class="muted" style="margin: 0 0 16px;">There are no entries matching your current filter.</p>
         <button class="btn primary sm" id="btnEmptyAddRecord" type="button">＋ Add Entry</button>
       </div>
@@ -500,6 +500,80 @@ function showAddRecordActionSheet() {
 }
 
 // ----------------------------------------------------------------------------
+// Deterministic Authentication State Machine
+// ----------------------------------------------------------------------------
+export const AUTH_STATES = {
+  INITIALIZING: 'INITIALIZING',
+  AUTHENTICATED: 'AUTHENTICATED',
+  UNAUTHENTICATED: 'UNAUTHENTICATED',
+  PASSWORD_RECOVERY: 'PASSWORD_RECOVERY',
+  ERROR: 'ERROR'
+};
+
+let currentAuthState = AUTH_STATES.INITIALIZING;
+
+export function getAuthState() {
+  return currentAuthState;
+}
+
+export function setAuthState(state, payload = null) {
+  currentAuthState = state;
+  const splash = $('#splashScreen');
+  const auth = $('#authScreen');
+  const app = $('#appScreen');
+
+  switch (state) {
+    case AUTH_STATES.INITIALIZING:
+      if (splash) {
+        splash.classList.remove('hidden', 'fade-out');
+      }
+      auth?.classList.add('hidden');
+      app?.classList.add('hidden');
+      break;
+
+    case AUTH_STATES.AUTHENTICATED:
+      auth?.classList.add('hidden');
+      app?.classList.remove('hidden');
+      if (splash && !splash.classList.contains('hidden')) {
+        splash.classList.add('fade-out');
+        setTimeout(() => splash.classList.add('hidden'), 280);
+      }
+      break;
+
+    case AUTH_STATES.UNAUTHENTICATED:
+      app?.classList.add('hidden');
+      auth?.classList.remove('hidden');
+      showAuthScreen('loginPanel');
+      if (splash && !splash.classList.contains('hidden')) {
+        splash.classList.add('fade-out');
+        setTimeout(() => splash.classList.add('hidden'), 280);
+      }
+      break;
+
+    case AUTH_STATES.PASSWORD_RECOVERY:
+      app?.classList.add('hidden');
+      auth?.classList.remove('hidden');
+      showAuthScreen('updatePasswordPanel');
+      if (splash && !splash.classList.contains('hidden')) {
+        splash.classList.add('fade-out');
+        setTimeout(() => splash.classList.add('hidden'), 280);
+      }
+      break;
+
+    case AUTH_STATES.ERROR:
+      app?.classList.add('hidden');
+      auth?.classList.remove('hidden');
+      showAuthScreen('loginPanel');
+      showAuthAlert(payload?.message || 'Unable to connect to healthcare service. Please check your connection and retry.', 'warning');
+      if (splash && !splash.classList.contains('hidden')) {
+        splash.classList.add('fade-out');
+        setTimeout(() => splash.classList.add('hidden'), 280);
+      }
+      break;
+  }
+}
+
+// ----------------------------------------------------------------------------
 // URL Router (Tokens & Recovery Links)
 // ----------------------------------------------------------------------------
 let isRecoverySessionActive = false;
@@ -516,10 +590,7 @@ function handleUrlRouting() {
 
   // Handle expired, invalid, or access-denied password recovery tokens
   if (hash.includes('error=') || hash.includes('error_code=otp_expired') || hash.includes('error_code=access_denied')) {
-    $('#splashScreen')?.classList.add('hidden');
-    $('#authScreen').classList.remove('hidden');
-    $('#appScreen').classList.add('hidden');
-    showAuthScreen('loginPanel');
+    setAuthState(AUTH_STATES.UNAUTHENTICATED);
     showAuthAlert('The password reset link has expired or is invalid. Please request a new recovery link.', 'error');
     window.history.replaceState(null, '', window.location.pathname);
     return;
@@ -528,10 +599,7 @@ function handleUrlRouting() {
   // Handle valid incoming password recovery hash
   if (hash.includes('type=recovery')) {
     isRecoverySessionActive = true;
-    $('#splashScreen')?.classList.add('hidden');
-    $('#authScreen').classList.remove('hidden');
-    $('#appScreen').classList.add('hidden');
-    showAuthScreen('updatePasswordPanel');
+    setAuthState(AUTH_STATES.PASSWORD_RECOVERY);
     toast('Please set your new secure password.');
   }
 }
@@ -704,9 +772,7 @@ function initEventListeners() {
     itemLogout.onclick = async () => {
       if (!confirm('Sign out of your MediKey account?')) return;
       await logoutUser();
-      $('#appScreen').classList.add('hidden');
-      $('#authScreen').classList.remove('hidden');
-      showAuthScreen('loginPanel');
+      setAuthState(AUTH_STATES.UNAUTHENTICATED);
       toast('Signed out safely.');
     };
   }
@@ -771,6 +837,7 @@ function initEventListeners() {
       if (res.verified && res.user) {
         toast('Account registered and signed in!');
         await syncDashboardData(res.user);
+        setAuthState(AUTH_STATES.AUTHENTICATED);
       }
       $('#registerForm').reset();
     } catch (err) {
@@ -835,6 +902,7 @@ function initEventListeners() {
       toast('Signed in! Loading cloud records...');
       $('#loginForm').reset();
       await syncDashboardData(user);
+      setAuthState(AUTH_STATES.AUTHENTICATED);
     } catch (err) {
       console.warn('Login attempt failed:', err);
       showAuthAlert(err.message || 'Incorrect email or password.', 'error');
@@ -914,7 +982,7 @@ function initEventListeners() {
       isRecoverySessionActive = false;
       await logoutUser();
       window.history.replaceState(null, '', window.location.pathname);
-      showAuthScreen('loginPanel');
+      setAuthState(AUTH_STATES.UNAUTHENTICATED);
     } catch (err) {
       toast(err.message || 'Failed to update password.');
     } finally {
@@ -929,7 +997,7 @@ function initEventListeners() {
     btnCancelRecovery.onclick = () => {
       isRecoverySessionActive = false;
       window.history.replaceState(null, '', window.location.pathname);
-      showAuthScreen('loginPanel');
+      setAuthState(AUTH_STATES.UNAUTHENTICATED);
     };
   }
 
@@ -1035,9 +1103,7 @@ function initEventListeners() {
       closeTopMenu();
       if (!confirm('Sign out of your MediKey account?')) return;
       await logoutUser();
-      $('#appScreen').classList.add('hidden');
-      $('#authScreen').classList.remove('hidden');
-      showAuthScreen('loginPanel');
+      setAuthState(AUTH_STATES.UNAUTHENTICATED);
       toast('Logged out safely.');
     };
   }
@@ -1174,7 +1240,7 @@ function showPrivacyInfo() {
     'MediKey Architecture & Security',
     `
     <div style="display: grid; gap: 10px; font-size: 0.88rem; line-height: 1.6;">
-      <div class="notice" style="margin: 0; background: var(--teal-50); border-color: var(--primary-border); color: var(--teal-900);">
+      <div class="notice" style="margin: 0; background: var(--soft-blue); border-color: var(--border); color: var(--text-main);">
         <strong>⚡ Secure Healthcare Architecture:</strong><br>
         Organized into clean modular components, encrypted in transit, with strict patient data isolation and secure cloud storage.
       </div>
@@ -1196,6 +1262,9 @@ function showPrivacyInfo() {
 async function bootstrap() {
   initEventListeners();
 
+  // State 1: Keep startup splash visible, keep auth & app screens hidden
+  setAuthState(AUTH_STATES.INITIALIZING);
+
   // Register PWA Service Worker
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').catch(err => {
@@ -1208,10 +1277,7 @@ async function bootstrap() {
     supabase.auth.onAuthStateChange((event, session) => {
       if (event === 'PASSWORD_RECOVERY') {
         isRecoverySessionActive = true;
-        $('#splashScreen')?.classList.add('hidden');
-        $('#authScreen').classList.remove('hidden');
-        $('#appScreen').classList.add('hidden');
-        showAuthScreen('updatePasswordPanel');
+        setAuthState(AUTH_STATES.PASSWORD_RECOVERY);
         toast('Please set your new secure password.');
       }
     });
@@ -1220,21 +1286,31 @@ async function bootstrap() {
   // Handle incoming hash routing
   handleUrlRouting();
 
-  // If a password recovery session is active, keep user on updatePasswordPanel
+  // If a password recovery session is active, keep user on recovery panel
   if (isRecoverySessionActive) {
+    setAuthState(AUTH_STATES.PASSWORD_RECOVERY);
     return;
   }
 
-  // Check active Supabase session
-  const user = await getSessionUser();
-  if (user) {
-    await syncDashboardData(user);
-    return;
-  }
+  // State 2 & 3: Check active Supabase session deterministically
+  try {
+    const user = await getSessionUser();
+    if (user) {
+      await syncDashboardData(user);
+      setAuthState(AUTH_STATES.AUTHENTICATED);
+      return;
+    }
 
-  // Default to Login view
-  $('#authScreen').classList.remove('hidden');
-  showAuthScreen('loginPanel');
+    // Default to Login view
+    setAuthState(AUTH_STATES.UNAUTHENTICATED);
+  } catch (err) {
+    console.warn('Error during authentication initialization:', err);
+    if (!navigator.onLine) {
+      setAuthState(AUTH_STATES.ERROR, { message: 'Network offline. Cached static app shell active.' });
+    } else {
+      setAuthState(AUTH_STATES.UNAUTHENTICATED);
+    }
+  }
 }
 
 if (document.readyState === 'loading') {

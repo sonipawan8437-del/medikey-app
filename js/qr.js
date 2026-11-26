@@ -23,7 +23,7 @@ export function renderLocalQRCode(containerElement, text, width = 180, height = 
       text: text,
       width: width,
       height: height,
-      colorDark: '#123575',
+      colorDark: '#1D4ED8',
       colorLight: '#ffffff',
       correctLevel: QRCode.CorrectLevel.M
     });
@@ -149,9 +149,10 @@ export async function showQRModal() {
       </div>
 
       <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 14px;">
-        <button class="btn primary" id="btnDownloadQR" type="button">📥 Download QR (PNG)</button>
+        <button class="btn primary" id="btnOpenPVCCard" type="button" style="background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%); color: #fff; font-weight: 700;">🪪 Emergency PVC Card</button>
+        <button class="btn light" id="btnDownloadQR" type="button">📥 QR Only</button>
         <button class="btn light" id="btnCopyShareLink" type="button">🔗 Copy Link</button>
-        <button class="btn danger" id="btnRevokePass" type="button">🚫 Revoke This Pass</button>
+        <button class="btn danger" id="btnRevokePass" type="button">🚫 Revoke</button>
       </div>
 
       <div class="notice" style="margin-top: 14px; text-align: left;">
@@ -224,6 +225,10 @@ export async function showQRModal() {
     toast('QR downloaded.');
   };
 
+  $('#btnOpenPVCCard').onclick = () => {
+    openPVCCardModal(activeShare, shareUrl);
+  };
+
   $('#btnCopyShareLink').onclick = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl);
@@ -231,6 +236,387 @@ export async function showQRModal() {
     } catch (e) {
       prompt('Copy your Emergency Pass link:', shareUrl);
     }
+  };
+}
+
+export async function generateCR80CardCanvas(shareUrl) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1275;
+  canvas.height = 2022;
+  const ctx = canvas.getContext('2d');
+
+  // Background - clinical white
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, 1275, 2022);
+
+  // Top header band - rich medical blue gradient
+  const grad = ctx.createLinearGradient(0, 0, 1275, 340);
+  grad.addColorStop(0, '#1D4ED8'); // primary-dark
+  grad.addColorStop(1, '#2563EB'); // primary
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 1275, 340);
+
+  // Rounded rectangle helper
+  const drawRoundedRect = (x, y, w, h, r) => {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+  };
+
+  // MediKey Cross Logo mark & Brand Text
+  const iconX = 140;
+  const iconY = 100;
+  const iconSize = 90;
+  ctx.fillStyle = '#FFFFFF';
+  drawRoundedRect(iconX, iconY, iconSize, iconSize, 22);
+  ctx.fill();
+
+  // Draw blue cross inside icon
+  ctx.fillStyle = '#2563EB';
+  const armW = 18;
+  const armL = 54;
+  ctx.fillRect(iconX + (iconSize - armL) / 2, iconY + (iconSize - armW) / 2, armL, armW);
+  ctx.fillRect(iconX + (iconSize - armW) / 2, iconY + (iconSize - armL) / 2, armW, armL);
+
+  // "MediKey" brand text
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = 'bold 74px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('MediKey', iconX + iconSize + 28, iconY + iconSize / 2);
+
+  // Subtitle / Header Type: "EMERGENCY QR CARD"
+  ctx.font = '700 32px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+  ctx.fillStyle = '#DBEAFE'; // soft blue
+  if ('letterSpacing' in ctx) ctx.letterSpacing = '3px';
+  ctx.fillText('EMERGENCY QR CARD', 140, 265);
+  if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
+
+  // Inner border on card body
+  ctx.strokeStyle = '#DBEAFE';
+  ctx.lineWidth = 4;
+  drawRoundedRect(60, 60, 1155, 1902, 40);
+  ctx.stroke();
+
+  // QR Code Quiet Zone container
+  const qrBoxSize = 780;
+  const qrBoxX = (1275 - qrBoxSize) / 2;
+  const qrBoxY = 460;
+  
+  ctx.fillStyle = '#FFFFFF';
+  drawRoundedRect(qrBoxX, qrBoxY, qrBoxSize, qrBoxSize, 32);
+  ctx.fill();
+  ctx.strokeStyle = '#E2E8F0';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Render QR Code using vendor QRCode
+  const qrSize = 680;
+  const qrX = (1275 - qrSize) / 2;
+  const qrY = qrBoxY + (qrBoxSize - qrSize) / 2;
+
+  const tempDiv = document.createElement('div');
+  tempDiv.style.position = 'absolute';
+  tempDiv.style.left = '-9999px';
+  tempDiv.style.top = '-9999px';
+  document.body.appendChild(tempDiv);
+
+  new QRCode(tempDiv, {
+    text: shareUrl,
+    width: qrSize,
+    height: qrSize,
+    colorDark: '#0F172A',
+    colorLight: '#FFFFFF',
+    correctLevel: QRCode.CorrectLevel.H
+  });
+
+  await new Promise(r => setTimeout(r, 60));
+  const qrSource = tempDiv.querySelector('canvas') || tempDiv.querySelector('img');
+  if (qrSource) {
+    ctx.drawImage(qrSource, qrX, qrY, qrSize, qrSize);
+  }
+  document.body.removeChild(tempDiv);
+
+  // Below QR Instructions
+  ctx.textAlign = 'center';
+
+  // 1. Prominent emergency instruction
+  ctx.font = 'bold 50px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+  ctx.fillStyle = '#DC2626'; // Emergency Red
+  ctx.fillText('SCAN IN AN EMERGENCY', 1275 / 2, 1370);
+
+  // 2. Secondary helper text
+  ctx.font = '600 34px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+  ctx.fillStyle = '#1E293B';
+  ctx.fillText('Access shared emergency health information', 1275 / 2, 1445);
+
+  // 3. Internet connection required badge
+  const pillW = 560;
+  const pillH = 64;
+  const pillX = (1275 - pillW) / 2;
+  const pillY = 1515;
+  ctx.fillStyle = '#EFF6FF';
+  drawRoundedRect(pillX, pillY, pillW, pillH, 32);
+  ctx.fill();
+  ctx.strokeStyle = '#DBEAFE';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.font = '600 26px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+  ctx.fillStyle = '#2563EB';
+  ctx.fillText('⚡ Internet connection required', 1275 / 2, pillY + 41);
+
+  // 4. Privacy badge note (Strictly NO patient info on card surface)
+  ctx.font = '500 24px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+  ctx.fillStyle = '#64748B';
+  ctx.fillText('🔒 Zero personal patient information on card surface', 1275 / 2, 1630);
+  ctx.fillText('Encrypted access controlled by patient emergency pass', 1275 / 2, 1675);
+
+  // Footer bar
+  const footerH = 150;
+  const footerY = 2022 - footerH;
+  ctx.fillStyle = '#F8FAFC';
+  ctx.fillRect(62, footerY, 1151, footerH - 62);
+  
+  ctx.strokeStyle = '#DBEAFE';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(62, footerY);
+  ctx.lineTo(1213, footerY);
+  ctx.stroke();
+
+  ctx.font = '600 28px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+  ctx.fillStyle = '#2563EB';
+  ctx.fillText('Powered by MediKey • Digital Healthcare Identity', 1275 / 2, footerY + 60);
+
+  return canvas;
+}
+
+export async function canvasToCR80Pdf(canvas) {
+  const jpegBlob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.95));
+  const jpegBuffer = new Uint8Array(await jpegBlob.arrayBuffer());
+  const widthPx = canvas.width;
+  const heightPx = canvas.height;
+
+  // CR80 standard physical dimensions in points (72 points per inch)
+  // 53.98 mm = 2.1252 inches = 153.01 pt
+  // 85.60 mm = 3.3701 inches = 242.65 pt
+  const ptWidth = 153.01;
+  const ptHeight = 242.65;
+
+  const contentStream = `q\n${ptWidth} 0 0 ${ptHeight} 0 0 cm\n/Im1 Do\nQ\n`;
+  const enc = new TextEncoder();
+  const contentBytes = enc.encode(contentStream);
+
+  const header = '%PDF-1.4\n%\xE2\xE3\xCF\xD3\n';
+  const obj1 = '1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n';
+  const obj2 = '2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n';
+  const obj3 = `3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${ptWidth} ${ptHeight}] /Contents 4 0 R /Resources << /XObject << /Im1 5 0 R >> >> >>\nendobj\n`;
+  const obj4Header = `4 0 obj\n<< /Length ${contentBytes.length} >>\nstream\n`;
+  const obj4Footer = '\nendstream\nendobj\n';
+  const obj5Header = `5 0 obj\n<< /Type /XObject /Subtype /Image /Width ${widthPx} /Height ${heightPx} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpegBuffer.length} >>\nstream\n`;
+  const obj5Footer = '\nendstream\nendobj\n';
+
+  const bHeader = enc.encode(header);
+  const bObj1 = enc.encode(obj1);
+  const bObj2 = enc.encode(obj2);
+  const bObj3 = enc.encode(obj3);
+  const bObj4H = enc.encode(obj4Header);
+  const bObj4F = enc.encode(obj4Footer);
+  const bObj5H = enc.encode(obj5Header);
+  const bObj5F = enc.encode(obj5Footer);
+
+  let offset = bHeader.length;
+  const offsets = [0];
+
+  offsets.push(offset); offset += bObj1.length;
+  offsets.push(offset); offset += bObj2.length;
+  offsets.push(offset); offset += bObj3.length;
+  offsets.push(offset); offset += bObj4H.length + contentBytes.length + bObj4F.length;
+  offsets.push(offset); offset += bObj5H.length + jpegBuffer.length + bObj5F.length;
+
+  const xrefOffset = offset;
+  let xref = 'xref\n0 6\n0000000000 65535 f \n';
+  for (let i = 1; i <= 5; i++) {
+    xref += String(offsets[i]).padStart(10, '0') + ' 00000 n \n';
+  }
+  const trailer = `trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`;
+  const bXref = enc.encode(xref);
+  const bTrailer = enc.encode(trailer);
+
+  return new Blob([
+    bHeader,
+    bObj1,
+    bObj2,
+    bObj3,
+    bObj4H,
+    contentBytes,
+    bObj4F,
+    bObj5H,
+    jpegBuffer,
+    bObj5F,
+    bXref,
+    bTrailer
+  ], { type: 'application/pdf' });
+}
+
+export async function add600DpiToPngBlob(blob) {
+  try {
+    const arrayBuffer = await blob.arrayBuffer();
+    const bytes = new Uint8Array(arrayBuffer);
+    if (bytes[0] !== 0x89 || bytes[1] !== 0x50) return blob;
+    const ihdrEnd = 33;
+    const physChunk = new Uint8Array([
+      0x00, 0x00, 0x00, 0x09,
+      0x70, 0x48, 0x59, 0x73,
+      0x00, 0x00, 0x5C, 0x46,
+      0x00, 0x00, 0x5C, 0x46,
+      0x01,
+      0x14, 0x94, 0x43, 0x41
+    ]);
+    const newBytes = new Uint8Array(bytes.length + physChunk.length);
+    newBytes.set(bytes.subarray(0, ihdrEnd), 0);
+    newBytes.set(physChunk, ihdrEnd);
+    newBytes.set(bytes.subarray(ihdrEnd), ihdrEnd + physChunk.length);
+    return new Blob([newBytes], { type: 'image/png' });
+  } catch (err) {
+    return blob;
+  }
+}
+
+export async function openPVCCardModal(activeShare, shareUrl) {
+  openModal(
+    'Branded Emergency QR PVC Card',
+    `
+    <div style="text-align: center; padding: 20px;">
+      <div class="upload-progress-bar" style="width: 100%;"></div>
+      <p class="muted" style="margin-top: 12px;">Generating 600 DPI print-ready CR80 card...</p>
+    </div>
+    `
+  );
+
+  let cardCanvas = null;
+  try {
+    cardCanvas = await generateCR80CardCanvas(shareUrl);
+  } catch (err) {
+    console.error('Failed to generate PVC card canvas:', err);
+    toast('Could not generate PVC card.');
+    return;
+  }
+
+  const previewDataUrl = cardCanvas.toDataURL('image/png');
+  const expiryText = activeShare && activeShare.expires_at
+    ? `Valid until ${new Date(activeShare.expires_at).toLocaleDateString()} (${new Date(activeShare.expires_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})`
+    : 'Valid until revoked';
+
+  openModal(
+    'Branded Emergency QR PVC Card',
+    `
+    <div style="text-align: center;">
+      <!-- Interactive Preview -->
+      <div style="margin: 4px auto 14px; max-width: 240px;">
+        <img id="pvcCardPreviewImg" src="${previewDataUrl}" alt="Emergency QR PVC Card Preview" style="width: 100%; border-radius: 12px; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.16); border: 1px solid #DBEAFE; display: block;" />
+      </div>
+
+      <!-- Card specs -->
+      <p class="muted" style="font-size: 0.8rem; margin: 0 0 10px;">
+        Standard CR80 Portrait (53.98 × 85.60 mm) • 1275 × 2022 px (600 DPI)
+      </p>
+
+      <!-- Token validity disclosure -->
+      <div class="notice" style="text-align: left; margin-bottom: 14px; font-size: 0.82rem;">
+        <strong>⚠️ Token Validity Disclosure:</strong>
+        <p style="margin: 4px 0 0; color: var(--text-secondary);">
+          This card is linked to your active emergency pass (${escapeHTML(expiryText)}). If this pass expires or is revoked, scanning the physical card will no longer display emergency health information.
+        </p>
+      </div>
+
+      <!-- Action buttons -->
+      <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+        <button class="btn primary" id="btnDownloadPVCPNG" type="button">📥 Download PNG (600 DPI)</button>
+        <button class="btn secondary" id="btnDownloadPVCPDF" type="button">📄 Print-Ready PDF (CR80)</button>
+        <button class="btn light" id="btnSharePVCCard" type="button">📲 Share Card</button>
+        <button class="btn light" id="btnBackToPass" type="button">↩ Back to Settings</button>
+      </div>
+    </div>
+    `
+  );
+
+  // Wire download PNG (Embedded 600 DPI pHYs Metadata)
+  $('#btnDownloadPVCPNG').onclick = async () => {
+    try {
+      const rawBlob = await new Promise(r => cardCanvas.toBlob(r, 'image/png'));
+      const blob600Dpi = await add600DpiToPngBlob(rawBlob);
+      const url = URL.createObjectURL(blob600Dpi);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `MediKey-EmergencyCard-CR80.png`;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(url), 30000);
+      toast('600 DPI PNG card downloaded.');
+    } catch (e) {
+      const link = document.createElement('a');
+      link.href = previewDataUrl;
+      link.download = `MediKey-EmergencyCard-CR80.png`;
+      link.click();
+      toast('PNG card downloaded.');
+    }
+  };
+
+  // Wire download PDF
+  $('#btnDownloadPVCPDF').onclick = async () => {
+    try {
+      toast('Synthesizing exact CR80 physical PDF...');
+      const pdfBlob = await canvasToCR80Pdf(cardCanvas);
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = pdfUrl;
+      link.download = `MediKey-EmergencyCard-CR80.pdf`;
+      link.click();
+      setTimeout(() => URL.revokeObjectURL(pdfUrl), 30000);
+      toast('Print-ready CR80 PDF downloaded.');
+    } catch (err) {
+      console.error('Failed to create PDF:', err);
+      toast('Could not synthesize PDF.');
+    }
+  };
+
+  // Wire native share
+  $('#btnSharePVCCard').onclick = async () => {
+    try {
+      if (navigator.share) {
+        const blob = await new Promise(r => cardCanvas.toBlob(r, 'image/png'));
+        const file = new File([blob], 'MediKey-EmergencyCard-CR80.png', { type: 'image/png' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            title: 'MediKey Emergency QR Card',
+            text: 'Here is my MediKey Emergency QR Medical Card.',
+            files: [file]
+          });
+          toast('Card shared.');
+          return;
+        }
+      }
+      await navigator.clipboard.writeText(shareUrl);
+      toast('Pass URL copied to clipboard (native image sharing unsupported on this browser).');
+    } catch (e) {
+      if (e.name !== 'AbortError') {
+        prompt('Copy your Emergency Pass link:', shareUrl);
+      }
+    }
+  };
+
+  // Wire back to pass settings
+  $('#btnBackToPass').onclick = () => {
+    showQRModal();
   };
 }
 
@@ -266,7 +652,7 @@ export async function resolveAndShowEmergencyShare(token) {
       ? data.emergency_contacts.map(c => `
           <div style="padding: 8px 10px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; margin-top: 5px;">
             <strong>${escapeHTML(c.name)}</strong> ${c.relationship ? `(${escapeHTML(c.relationship)})` : ''} — 
-            <a href="tel:${escapeHTML(c.phone)}" style="color:var(--green); font-weight:700;">☎ ${escapeHTML(c.phone)}</a>
+            <a href="tel:${escapeHTML(c.phone)}" style="color:var(--primary); font-weight:700;">☎ ${escapeHTML(c.phone)}</a>
           </div>
         `).join('')
       : '<p class="muted">No emergency contacts authorized.</p>';
@@ -351,7 +737,7 @@ export function startInlineQRScanner(targetElementId = 'reader', onDecoded = nul
       container.innerHTML = `
         <div style="padding: 24px 16px; text-align: center; color: var(--text-muted);">
           <div style="font-size: 2.2rem; margin-bottom: 8px;">📷</div>
-          <strong style="color: var(--teal-900); display: block; margin-bottom: 4px;">
+          <strong style="color: var(--primary-dark); display: block; margin-bottom: 4px;">
             ${isDenied ? 'Camera Permission Denied' : 'Camera Unavailable'}
           </strong>
           <p style="font-size: 0.8rem; margin: 0 0 14px;">

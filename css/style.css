@@ -8,25 +8,28 @@
    01. Design Tokens & CSS Custom Properties
    -------------------------------------------------------------------------- */
 :root {
-  /* Primary Healthcare Palette (User Specified) */
-  --primary: #087F80;
-  --primary-dark: #075E63;
-  --primary-hover: #064E52;
-  --primary-light: #E0F2F1;
-  --primary-subtle: #F0FDF4;
-  --primary-border: #B2DFDB;
+  /* Restored Light Blue Healthcare Palette (User Specified) */
+  --primary: #2563EB;
+  --primary-dark: #1D4ED8;
+  --primary-hover: #1E40AF;
+  --primary-light: #EFF6FF;
+  --primary-subtle: #F0F7FF;
+  --primary-border: #BFDBFE;
+  --secondary-blue: #60A5FA;
+  --soft-blue: #EFF6FF;
+  --medical-id-surface: #DBEAFE;
 
   /* Neutrals & Healthcare Surfaces */
-  --bg: #F4F7F8;
-  --bg-subtle: #E8EEF1;
+  --bg: #F8FAFC;
+  --bg-subtle: #F1F5F9;
   --surface: #FFFFFF;
   --surface-elevated: #FFFFFF;
-  --border: #E2E8F0;
-  --border-subtle: #CBD5E1;
-  --border-focus: #087F80;
+  --border: #DBEAFE;
+  --border-subtle: #E2E8F0;
+  --border-focus: #2563EB;
 
   /* Typography Colors */
-  --text-main: #102A43;        /* 13.9:1 contrast on white (WCAG AAA) */
+  --text-main: #0F172A;        /* 15.6:1 contrast on white (WCAG AAA) */
   --text-secondary: #64748B;   /* 4.6:1 contrast on white (WCAG AA) */
   --text-muted: #64748B;
   --text-tertiary: #94A3B8;
@@ -48,30 +51,30 @@
   --green-100: #DCFCE7;
   --green-line: #86EFAC;
 
-  --blue-700: #0369A1;
-  --blue-100: #E0F2FE;
-  --blue-line: #BAE6FD;
+  --blue-700: #1D4ED8;
+  --blue-100: #DBEAFE;
+  --blue-line: #BFDBFE;
 
   --purple-700: #7E22CE;
   --purple-100: #F3E8FF;
 
   /* Legacy variable compatibility */
-  --teal-900: #04252E;
-  --teal-800: #075E63;
-  --teal-700: #087F80;
-  --teal-600: #0E9F9F;
-  --teal-500: #14B8A6;
-  --teal-100: #E0F2F1;
-  --teal-50:  #F0FDF4;
-  --navy: #075E63;
-  --navy-dark: #04252E;
-  --blue: #087F80;
-  --blue-hover: #075E63;
-  --sky: #E0F2FE;
-  --ink: #102A43;
+  --teal-900: #0F172A;
+  --teal-800: #1D4ED8;
+  --teal-700: #2563EB;
+  --teal-600: #3B82F6;
+  --teal-500: #60A5FA;
+  --teal-100: #DBEAFE;
+  --teal-50:  #EFF6FF;
+  --navy: #1D4ED8;
+  --navy-dark: #0F172A;
+  --blue: #2563EB;
+  --blue-hover: #1D4ED8;
+  --sky: #EFF6FF;
+  --ink: #0F172A;
   --muted: #64748B;
   --muted-light: #94A3B8;
-  --line: #E2E8F0;
+  --line: #DBEAFE;
   --white: #FFFFFF;
   --red: #DC2626;
   --red-bg: #FEF2F2;
@@ -120,7 +123,7 @@
   --radius-full: 9999px;
 
   /* Focus Indicator (WCAG 2.4.11) */
-  --focus-ring: 0 0 0 3px rgba(8, 127, 128, 0.35);
+  --focus-ring: 0 0 0 3px rgba(37, 99, 235, 0.35);
 }
 
 /* --------------------------------------------------------------------------
@@ -206,7 +209,7 @@ button:disabled {
   z-index: 1000;
   display: grid;
   place-items: center;
-  background: linear-gradient(145deg, var(--primary-dark), var(--primary) 65%, #22D3EE);
+  background: linear-gradient(145deg, var(--primary-dark), var(--primary) 65%, #60A5FA);
   color: var(--surface);
   opacity: 1;
   transition: opacity 0.25s ease;
@@ -316,7 +319,7 @@ button:disabled {
   color: var(--surface);
   font-size: 1.3rem;
   font-weight: 900;
-  box-shadow: 0 4px 12px rgba(8, 127, 128, 0.25);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
   flex-shrink: 0;
 }
 
@@ -585,7 +588,7 @@ button:disabled {
 .btn.primary {
   background: var(--primary);
   color: #FFFFFF;
-  box-shadow: 0 2px 8px rgba(8, 127, 128, 0.25);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
 }
 
 .btn.primary:hover:not(:disabled) {
@@ -724,7 +727,7 @@ button:disabled {
   color: var(--primary-dark);
   background: var(--primary-light);
   font-weight: 800;
-  box-shadow: 0 1px 3px rgba(8, 127, 128, 0.15);
+  box-shadow: 0 1px 3px rgba(37, 99, 235, 0.15);
 }
 
 .desktop-nav .nav-tab-icon {
@@ -932,11 +935,11 @@ button:disabled {
    08. Digital Medical ID Card Component
    -------------------------------------------------------------------------- */
 .digital-id-pass, .medical-id-card {
-  background: linear-gradient(135deg, var(--teal-900) 0%, var(--primary-dark) 55%, var(--primary) 100%);
+  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 55%, var(--secondary-blue) 100%);
   color: #FFFFFF;
   border-radius: var(--radius-xl);
   padding: 20px;
-  box-shadow: 0 8px 24px rgba(8, 127, 128, 0.22);
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.22);
   border: 1px solid rgba(255, 255, 255, 0.2);
   margin-bottom: 0;
   box-sizing: border-box;
@@ -956,11 +959,11 @@ button:disabled {
   font-size: 0.88rem;
   font-weight: 850;
   letter-spacing: 0.4px;
-  color: #E0F2F1;
+  color: #DBEAFE;
 }
 
 .digital-id-pass .settings {
-  color: #E0F2F1;
+  color: #DBEAFE;
   font-size: 0.76rem;
   font-weight: 750;
   background: rgba(255, 255, 255, 0.15);
@@ -1018,7 +1021,7 @@ button:disabled {
 .id-pass-details p, .id-patient-healthid {
   margin: 3px 0 0;
   font-size: var(--font-xs);
-  color: #E0F2F1;
+  color: #DBEAFE;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   letter-spacing: 0.3px;
 }
@@ -1461,7 +1464,7 @@ button:disabled {
   background: var(--primary);
   border-color: var(--primary);
   color: #FFFFFF;
-  box-shadow: 0 2px 6px rgba(8, 127, 128, 0.25);
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
 }
 
 /* Records Card List */

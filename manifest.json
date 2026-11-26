@@ -4,8 +4,8 @@
   "description": "Digital Medical ID and Healthcare Emergency Pass",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#123575",
-  "theme_color": "#123575",
+  "background_color": "#F8FAFC",
+  "theme_color": "#2563EB",
   "icons": [
     {
       "src": "assets/icons/icon-192.png",

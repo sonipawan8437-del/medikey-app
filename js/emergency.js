@@ -184,7 +184,7 @@ export function openEmergencyConfirmationModal() {
     <!-- Live GPS Coordinates Box for 911 / 112 Dispatchers -->
     <div style="background: var(--bg-subtle); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 10px 12px; margin-bottom: 12px; font-size: 0.82rem;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-        <strong style="color: var(--teal-900);">📍 Your Current Location (For First Responders):</strong>
+        <strong style="color: var(--text-main);">📍 Your Current Location (For First Responders):</strong>
       </div>
       <div id="sosGpsCoordinates" style="font-family: ui-monospace, monospace; color: var(--text-muted); font-size: 0.78rem;">
         Acquiring GPS coordinates...
