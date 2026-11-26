@@ -1173,8 +1173,31 @@ button:disabled {
   width: 100%;
 }
 
-.quick-actions-card, .ice-card, .privacy-guarantee-card {
+.quick-actions-card, .ice-card, .privacy-guarantee-card, .appointments-card, .prescriptions-card, .documents-card, .hospitals-card {
   position: relative;
+}
+
+/* Profile Completion Card (First-Time UX) */
+.profile-completion-card {
+  background: var(--primary-light);
+  border: 1px solid var(--primary-border);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-xs);
+  animation: bannerFade 0.25s ease-in-out;
+}
+
+/* Profile Overview Card (Read-Only) */
+.profile-overview-card {
+  padding: 4px 0;
+}
+
+.profile-overview-field {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
 }
 
 .tile, .quick-item {
@@ -1811,6 +1834,29 @@ footer {
   .quick-action-grid {
     grid-template-columns: repeat(4, 1fr);
   }
+}
+
+/* Mobile & Tablet Dashboard Hierarchy (< 1024px) */
+@media (max-width: 1023px) {
+  .dashboard-grid {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  .dashboard-primary {
+    display: contents !important;
+  }
+  .dashboard-sidebar {
+    display: contents !important;
+  }
+  .digital-id-pass { order: 1; }
+  .emergency-quick-bar { order: 2; }
+  .quick-actions-card { order: 3; }
+  .appointments-card { order: 4; }
+  .prescriptions-card { order: 5; }
+  .documents-card { order: 6; }
+  .ice-card { order: 7; }
+  .hospitals-card { order: 8; }
+  .privacy-guarantee-card { order: 9; }
 }
 
 /* Tablets (>= 768px) */

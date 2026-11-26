@@ -628,7 +628,7 @@ export function openMedicalHistoryModal(onUpdate) {
       currentHistory = payload;
       if (typeof onUpdate === 'function') onUpdate();
       closeModal();
-      toast('Medical history saved to cloud.');
+      toast('Medical history saved successfully.');
     } catch (err) {
       toast('Failed to save history: ' + err.message);
     } finally {

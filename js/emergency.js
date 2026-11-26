@@ -258,11 +258,11 @@ export function openEmergencyCardModal() {
     <div style="display: grid; gap: 8px; font-size: 0.9rem;">
       <p><strong>Patient Name:</strong> ${escapeHTML(p.full_name || 'Not provided')}</p>
       <p><strong>Blood Group:</strong> <span class="badge-tag blood">${escapeHTML(p.blood_group || 'Unknown')}</span></p>
-      <p><strong>Age:</strong> ${escapeHTML(p.age || 'Not entered')}</p>
-      <p><strong>Critical Allergies:</strong> <span style="color:#b91c1c; font-weight:700;">${escapeHTML(p.allergies || 'None recorded')}</span></p>
-      <p><strong>Active Medications:</strong> ${escapeHTML(p.current_medications || 'None recorded')}</p>
-      <p><strong>Chronic Conditions:</strong> ${escapeHTML(p.chronic_conditions || 'None recorded')}</p>
-      <p><strong>Emergency Contact:</strong> ${escapeHTML(primary?.name || 'Not recorded')} 
+      <p><strong>Age:</strong> ${escapeHTML(p.age || 'Not provided')}</p>
+      <p><strong>Critical Allergies:</strong> <span style="color:#b91c1c; font-weight:700;">${escapeHTML(p.allergies || 'Not provided')}</span></p>
+      <p><strong>Active Medications:</strong> ${escapeHTML(p.current_medications || 'Not provided')}</p>
+      <p><strong>Chronic Conditions:</strong> ${escapeHTML(p.chronic_conditions || 'Not provided')}</p>
+      <p><strong>Emergency Contact:</strong> ${escapeHTML(primary?.name || 'Not provided')} 
          ${primary?.phone ? `— <a href="tel:${escapeHTML(primary.phone)}" style="color:var(--green); font-weight:700;">☎ ${escapeHTML(primary.phone)}</a>` : ''}
       </p>
     </div>

@@ -122,41 +122,50 @@
         </div>
       </div>
 
-      <!-- Forgot Password Panel -->
+      <!-- Forgot Password Panel (Supabase Official Flow) -->
       <div id="forgotPanel" class="hidden">
         <h1>Reset password</h1>
-        <p class="muted">Enter your registered email address to receive a secure recovery link.</p>
+        <p class="muted">Enter your registered email address to receive a secure password recovery link.</p>
         <form id="resetForm" novalidate>
           <div class="field">
-            <label for="resetEmail">Registered email *</label>
-            <input id="resetEmail" type="email" required inputmode="email" placeholder="name@example.com">
+            <label for="resetEmail">Registered email address *</label>
+            <input id="resetEmail" type="email" required inputmode="email" autocomplete="email" placeholder="name@example.com">
           </div>
-          <button class="btn primary full" type="submit" style="margin-top: 10px;">Send Recovery Email</button>
+          <button class="btn primary full" id="btnSendResetEmail" type="submit" style="margin-top: 10px;">Send Recovery Email</button>
         </form>
         <div style="margin-top: 14px; text-align: center;">
           <button class="link" id="backLogin" type="button">Back to login</button>
         </div>
       </div>
 
-      <!-- Update Password Panel -->
+      <!-- Update Password Panel (Shown upon opening a verified recovery link) -->
       <div id="updatePasswordPanel" class="hidden">
         <h1>Set new password</h1>
-        <p class="muted">Enter your new secure password below.</p>
+        <p class="muted">Enter and confirm your new secure password below to regain account access.</p>
         <form id="updatePasswordForm" novalidate>
           <div class="field">
-            <label for="updatePassword">New password *</label>
-            <input id="updatePassword" type="password" minlength="6" required placeholder="At least 6 characters">
+            <label for="updatePassword">New password * (At least 6 characters)</label>
+            <div class="pw-wrap">
+              <input id="updatePassword" type="password" minlength="6" required autocomplete="new-password" placeholder="At least 6 characters">
+              <button class="pw-toggle-btn" type="button" aria-label="Toggle password visibility" data-target="updatePassword">👁️</button>
+            </div>
           </div>
           <div class="field">
             <label for="updateConfirmPassword">Confirm new password *</label>
-            <input id="updateConfirmPassword" type="password" minlength="6" required placeholder="Repeat new password">
+            <div class="pw-wrap">
+              <input id="updateConfirmPassword" type="password" minlength="6" required autocomplete="new-password" placeholder="Re-enter new password">
+              <button class="pw-toggle-btn" type="button" aria-label="Toggle password visibility" data-target="updateConfirmPassword">👁️</button>
+            </div>
           </div>
-          <button class="btn primary full" type="submit" style="margin-top: 10px;">Update Password</button>
+          <button class="btn primary full" id="btnSubmitNewPassword" type="submit" style="margin-top: 10px;">Update Password</button>
         </form>
+        <div style="margin-top: 14px; text-align: center;">
+          <button class="link" id="btnCancelRecovery" type="button">Cancel & Return to Login</button>
+        </div>
       </div>
 
       <div class="notice" style="margin-top: 16px;">
-        <strong>🔒 Bank-Grade Security:</strong> 256-bit AES encryption with Zero-Knowledge patient privacy enforcement.
+        <strong>🔒 Patient Privacy:</strong> Encrypted in transit and protected by secure access controls.
       </div>
     </div>
   </section>
@@ -207,9 +216,9 @@
               <option value="hi">हिन्दी (Hindi)</option>
               <option value="mr">मराठी (Marathi)</option>
             </select>
-            <button type="button" id="menuProfile">♙ View Profile</button>
-            <button type="button" id="editBtn">✎ Edit Profile</button>
-            <button type="button" id="menuPersonal">▣ Personal Info</button>
+            <button type="button" id="menuProfile">♙ View Profile Overview</button>
+            <button type="button" id="editBtn">✎ Edit Full Profile</button>
+            <button type="button" id="menuPersonal">👤 Personal Identity & Photo</button>
             <button type="button" id="privacyBtn">🔒 Privacy & Architecture</button>
             <button type="button" id="logoutBtn" style="color:var(--emergency);">↪ Logout</button>
           </nav>
@@ -233,6 +242,9 @@
           <div class="status" id="homeSyncStatus">● Active</div>
         </div>
 
+        <!-- Optional Lightweight Profile Completion Guide (First-Time UX) -->
+        <div id="profileCompletionBanner" class="profile-completion-card hidden"></div>
+
         <div class="dashboard-grid">
           <!-- Primary Clinical Column (Left on Desktop) -->
           <div class="dashboard-primary">
@@ -240,7 +252,7 @@
             <div class="digital-id-pass" id="digitalIdCard">
               <div class="id-pass-top">
                 <div class="id-pass-brand">✚ MediKey Health ID</div>
-                <button class="settings" id="settingsBtn" type="button" aria-label="Settings">⚙ Settings</button>
+                <button class="settings" id="settingsBtn" type="button" aria-label="Open Settings">⚙ Settings</button>
               </div>
               <div class="id-pass-main">
                 <div class="id-pass-patient">
@@ -278,10 +290,10 @@
 
             <!-- 4. Clinical Priority Previews -->
             <!-- Upcoming Appointments Card -->
-            <div class="clinical-card">
+            <div class="clinical-card appointments-card">
               <div class="clinical-card-header">
                 <h3>📅 Upcoming Appointments</h3>
-                <button class="btn light sm" id="btnManageAppointments" type="button">＋ Add / View</button>
+                <button class="btn light sm" id="btnManageAppointments" type="button">＋ Add Appointment</button>
               </div>
               <div id="homeAppointmentsPreview">
                 <div class="clinical-card-empty">No scheduled doctor visits yet.</div>
@@ -289,10 +301,10 @@
             </div>
 
             <!-- Active Prescriptions Preview -->
-            <div class="clinical-card">
+            <div class="clinical-card prescriptions-card">
               <div class="clinical-card-header">
                 <h3>💊 Active Prescriptions</h3>
-                <button class="btn light sm" id="btnManagePrescriptions" type="button">＋ Add / View</button>
+                <button class="btn light sm" id="btnManagePrescriptions" type="button">＋ Add Medicine</button>
               </div>
               <div id="homePrescriptionsPreview">
                 <div class="clinical-card-empty">No active prescriptions entered yet.</div>
@@ -300,10 +312,10 @@
             </div>
 
             <!-- Recent Documents Preview -->
-            <div class="clinical-card">
+            <div class="clinical-card documents-card">
               <div class="clinical-card-header">
                 <h3>📄 Recent Documents</h3>
-                <button class="btn light sm" id="btnManageDocuments" type="button">＋ Upload</button>
+                <button class="btn light sm" id="btnManageDocuments" type="button">＋ Upload Document</button>
               </div>
               <div id="homeDocumentsPreview">
                 <div class="clinical-card-empty">No medical documents uploaded to vault yet.</div>
@@ -393,7 +405,7 @@
             </div>
 
             <!-- Nearby Hospitals Geolocation Card -->
-            <div class="clinical-card">
+            <div class="clinical-card hospitals-card">
               <div class="clinical-card-header">
                 <h3>🏥 Nearby Emergency Hospitals</h3>
               </div>
@@ -412,10 +424,10 @@
             <div class="clinical-card privacy-guarantee-card">
               <div class="clinical-card-header">
                 <h3>🔒 Patient Privacy Guarantee</h3>
-                <span class="badge" style="background:var(--primary-light); color:var(--primary-dark); border:1px solid var(--border);">Bank-Grade</span>
+                <span class="badge" style="background:var(--primary-light); color:var(--primary-dark); border:1px solid var(--border);">Secure &amp; Private</span>
               </div>
               <p style="margin: 0 0 8px; font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5;">
-                Your health data is protected with 256-bit AES cryptographic encryption and strict database isolation. First responders access only the specific emergency fields you have authorized.
+                Your health data is encrypted in transit and securely stored in private cloud databases. First responders access only the specific emergency fields you have authorized.
               </p>
               <button class="link" id="btnLearnPrivacy" type="button" style="font-size: 0.8rem;">View Architecture & Security →</button>
             </div>
@@ -493,23 +505,47 @@
       </section>
 
       <!-- ==================================================================
-           VIEW 4: Profile & Settings View
+           VIEW 4: Profile & Settings View (Organized & Unambiguous)
            ================================================================== -->
       <section id="viewProfile" class="app-view" aria-label="Patient Profile and Settings">
         <div class="clinical-card" style="text-align: center; padding: 22px 16px; margin-bottom: 18px; max-width: 680px; margin-left: auto; margin-right: auto;">
           <div class="avatar" id="profileTabAvatar" style="margin: 0 auto 10px; width: 76px; height: 76px; font-size: 1.8rem;">MK</div>
           <h2 id="profileTabName" style="margin: 0 0 3px; font-size: 1.25rem; color: var(--text-main);">Patient</h2>
           <p id="profileTabId" style="margin: 0 0 12px; font-size: 0.85rem; color: var(--text-secondary);">Health ID: —</p>
-          <button class="btn primary sm" id="btnEditProfileFromTab" type="button">✎ Edit Full Profile</button>
+          <div style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap;">
+            <button class="btn secondary sm" id="btnViewProfileTab" type="button">♙ View Profile Overview</button>
+            <button class="btn primary sm" id="btnEditProfileFromTab" type="button">✎ Edit Full Profile</button>
+          </div>
         </div>
 
         <div style="max-width: 680px; margin: 0 auto;">
           <div class="settings-group">
             <div class="settings-group-header">Health Identity & Medical Info</div>
+            <button class="settings-item" id="itemPersonalView" type="button">
+              <span class="settings-item-label">
+                <span class="settings-item-icon">♙</span>
+                View Full Profile Overview
+              </span>
+              <span class="settings-item-arrow">›</span>
+            </button>
             <button class="settings-item" id="itemPersonal" type="button">
               <span class="settings-item-label">
                 <span class="settings-item-icon">👤</span>
-                Personal & Contact Details
+                Personal Identity & Photo
+              </span>
+              <span class="settings-item-arrow">›</span>
+            </button>
+            <button class="settings-item" id="itemContact" type="button">
+              <span class="settings-item-label">
+                <span class="settings-item-icon">📞</span>
+                Contact & Phone Details
+              </span>
+              <span class="settings-item-arrow">›</span>
+            </button>
+            <button class="settings-item" id="itemMedicalInfo" type="button">
+              <span class="settings-item-label">
+                <span class="settings-item-icon">🩺</span>
+                Critical Medical Parameters (Blood, Allergies)
               </span>
               <span class="settings-item-arrow">›</span>
             </button>
@@ -538,10 +574,24 @@
               </span>
               <span class="settings-item-arrow">›</span>
             </button>
+            <button class="settings-item" id="itemChangePassword" type="button">
+              <span class="settings-item-label">
+                <span class="settings-item-icon">🔑</span>
+                Change Password & Account Security
+              </span>
+              <span class="settings-item-arrow">›</span>
+            </button>
+            <button class="settings-item" id="itemAppPreferences" type="button">
+              <span class="settings-item-label">
+                <span class="settings-item-icon">🌐</span>
+                Language & App Preferences
+              </span>
+              <span class="settings-item-arrow">›</span>
+            </button>
             <button class="settings-item" id="itemPrivacy" type="button">
               <span class="settings-item-label">
                 <span class="settings-item-icon">🔒</span>
-                Bank-Grade Security & Privacy Architecture
+                Security & Architecture Overview
               </span>
               <span class="settings-item-arrow">›</span>
             </button>

@@ -102,7 +102,7 @@ export function compressImageToBlob(file, maxDimension = 240, quality = 0.8) {
 export const i18n = {
   en: {
     create: 'Create your account',
-    registerText: 'Register with email to create your personal MediKey Cloud Health ID.',
+    registerText: 'Register with email to create your personal MediKey Digital Health ID.',
     fullName: 'Full name',
     email: 'Email address',
     password: 'Create password',
@@ -119,7 +119,7 @@ export const i18n = {
     eyebrow: 'Your digital healthcare pass',
     headline: 'Your health, in one place.',
     subtitle: 'Organise essential health details and make emergency information easier to access.',
-    logged: '● Cloud Synced',
+    logged: '● Secure Synced',
     healthId: '✚ MediKey Health ID',
     settings: '⚙ Settings',
     emergency: 'Emergency Health Summary',
@@ -134,7 +134,7 @@ export const i18n = {
   },
   hi: {
     create: 'अपना खाता बनाएँ',
-    registerText: 'अपना MediKey Cloud Health ID बनाने के लिए ईमेल से पंजीकरण करें।',
+    registerText: 'अपना MediKey Digital Health ID बनाने के लिए ईमेल से पंजीकरण करें।',
     fullName: 'पूरा नाम',
     email: 'ईमेल पता',
     password: 'पासवर्ड बनाएँ',
@@ -166,7 +166,7 @@ export const i18n = {
   },
   mr: {
     create: 'तुमचे खाते तयार करा',
-    registerText: 'तुमचा MediKey Cloud Health ID तयार करण्यासाठी ईमेलने नोंदणी करा.',
+    registerText: 'तुमचा MediKey Digital Health ID तयार करण्यासाठी ईमेलने नोंदणी करा.',
     fullName: 'पूर्ण नाव',
     email: 'ईमेल पत्ता',
     password: 'पासवर्ड तयार करा',

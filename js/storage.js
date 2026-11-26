@@ -41,7 +41,7 @@ export async function loadDocuments(userId) {
 }
 
 export async function getSignedDocumentUrl(filePath, validitySeconds = 300) {
-  if (!supabase) throw new Error('Supabase not connected');
+  if (!supabase) throw new Error('Cloud storage not connected');
   const { data, error } = await supabase.storage
     .from('medikey-documents')
     .createSignedUrl(filePath, validitySeconds);
@@ -50,7 +50,7 @@ export async function getSignedDocumentUrl(filePath, validitySeconds = 300) {
 }
 
 export async function deleteDocument(docId, filePath, userId) {
-  if (!supabase) throw new Error('Supabase not connected');
+  if (!supabase) throw new Error('Cloud storage not connected');
   await supabase.storage.from('medikey-documents').remove([filePath]);
   await supabase.from('medical_documents').delete().eq('id', docId).eq('user_id', userId);
 }
@@ -256,7 +256,7 @@ export function openDocumentSection(title, category, description, onUpdate) {
       btn.onclick = async () => {
         const id = btn.dataset.id;
         const path = btn.dataset.path;
-        if (!confirm('Are you sure you want to permanently delete this medical document from the cloud vault?')) return;
+        if (!confirm('Are you sure you want to permanently delete this medical document?')) return;
 
         try {
           await deleteDocument(id, path, user.id);

@@ -21,9 +21,18 @@ import {
 } from './auth.js';
 import {
   getCurrentProfile,
+  setCurrentProfile,
   loadProfile,
   openProfileEditor,
-  updateProfileBannerUI
+  updateProfileBannerUI,
+  openViewProfileModal,
+  openEditProfileModal,
+  openPersonalInfoModal,
+  openContactDetailsModal,
+  openMedicalInfoModal,
+  openChangePasswordModal,
+  openAppPreferencesModal,
+  checkAndRenderProfileCompletion
 } from './profile.js';
 import {
   loadAllRecords,
@@ -493,8 +502,10 @@ function showAddRecordActionSheet() {
 // ----------------------------------------------------------------------------
 // URL Router (Tokens & Recovery Links)
 // ----------------------------------------------------------------------------
+let isRecoverySessionActive = false;
+
 function handleUrlRouting() {
-  const hash = window.location.hash;
+  const hash = window.location.hash || '';
   if (!hash) return;
 
   if (hash.startsWith('#emergency-share=')) {
@@ -503,9 +514,25 @@ function handleUrlRouting() {
     return;
   }
 
+  // Handle expired, invalid, or access-denied password recovery tokens
+  if (hash.includes('error=') || hash.includes('error_code=otp_expired') || hash.includes('error_code=access_denied')) {
+    $('#splashScreen')?.classList.add('hidden');
+    $('#authScreen').classList.remove('hidden');
+    $('#appScreen').classList.add('hidden');
+    showAuthScreen('loginPanel');
+    showAuthAlert('The password reset link has expired or is invalid. Please request a new recovery link.', 'error');
+    window.history.replaceState(null, '', window.location.pathname);
+    return;
+  }
+
+  // Handle valid incoming password recovery hash
   if (hash.includes('type=recovery')) {
+    isRecoverySessionActive = true;
+    $('#splashScreen')?.classList.add('hidden');
+    $('#authScreen').classList.remove('hidden');
+    $('#appScreen').classList.add('hidden');
     showAuthScreen('updatePasswordPanel');
-    toast('Please set your new password.');
+    toast('Please set your new secure password.');
   }
 }
 
@@ -617,13 +644,34 @@ function initEventListeners() {
   }
 
   // Profile View Items
+  const onProfileUpdated = updatedProf => {
+    updateProfileBannerUI(updatedProf, getPrimaryEmergencyContact());
+    refreshDashboardQR();
+  };
+
+  const btnViewProfTab = $('#btnViewProfileTab');
+  if (btnViewProfTab) {
+    btnViewProfTab.onclick = () => openViewProfileModal(() => openEditProfileModal(onProfileUpdated));
+  }
+
   const btnEditProfTab = $('#btnEditProfileFromTab');
   if (btnEditProfTab) {
-    btnEditProfTab.onclick = handleEditProfile;
+    btnEditProfTab.onclick = () => openEditProfileModal(onProfileUpdated);
+  }
+
+  const itemPersonalView = $('#itemPersonalView');
+  if (itemPersonalView) {
+    itemPersonalView.onclick = () => openViewProfileModal(() => openEditProfileModal(onProfileUpdated));
   }
 
   const itemPersonal = $('#itemPersonal');
-  if (itemPersonal) itemPersonal.onclick = handleEditProfile;
+  if (itemPersonal) itemPersonal.onclick = () => openPersonalInfoModal(onProfileUpdated);
+
+  const itemContact = $('#itemContact');
+  if (itemContact) itemContact.onclick = () => openContactDetailsModal(onProfileUpdated);
+
+  const itemMedInfo = $('#itemMedicalInfo');
+  if (itemMedInfo) itemMedInfo.onclick = () => openMedicalInfoModal(onProfileUpdated);
 
   const itemMedHistory = $('#itemMedicalHistory');
   if (itemMedHistory) {
@@ -641,6 +689,12 @@ function initEventListeners() {
 
   const itemQRPass = $('#itemQRPass');
   if (itemQRPass) itemQRPass.onclick = showQRModal;
+
+  const itemChangePw = $('#itemChangePassword');
+  if (itemChangePw) itemChangePw.onclick = openChangePasswordModal;
+
+  const itemAppPref = $('#itemAppPreferences');
+  if (itemAppPref) itemAppPref.onclick = () => openAppPreferencesModal(lang => applyLanguage(lang));
 
   const itemPrivacy = $('#itemPrivacy');
   if (itemPrivacy) itemPrivacy.onclick = showPrivacyInfo;
@@ -855,8 +909,11 @@ function initEventListeners() {
 
     try {
       await updatePassword(p1);
-      toast('Password updated successfully! Please sign in.');
+      toast('Password updated successfully! Please sign in with your new password.');
       $('#updatePasswordForm').reset();
+      isRecoverySessionActive = false;
+      await logoutUser();
+      window.history.replaceState(null, '', window.location.pathname);
       showAuthScreen('loginPanel');
     } catch (err) {
       toast(err.message || 'Failed to update password.');
@@ -866,6 +923,15 @@ function initEventListeners() {
       btn.textContent = 'Update Password';
     }
   });
+
+  const btnCancelRecovery = $('#btnCancelRecovery');
+  if (btnCancelRecovery) {
+    btnCancelRecovery.onclick = () => {
+      isRecoverySessionActive = false;
+      window.history.replaceState(null, '', window.location.pathname);
+      showAuthScreen('loginPanel');
+    };
+  }
 
   $('#showLogin').onclick = () => {
     if (tabBtnLogin) tabBtnLogin.click();
@@ -917,27 +983,64 @@ function initEventListeners() {
   // Top Menu Actions
   function handleEditProfile() {
     closeTopMenu();
-    openProfileEditor(updatedProf => {
-      updateProfileBannerUI(updatedProf, getPrimaryEmergencyContact());
-      refreshDashboardQR();
-    });
+    openEditProfileModal(onProfileUpdated);
   }
 
-  $('#menuProfile').onclick = handleEditProfile;
-  $('#menuPersonal').onclick = handleEditProfile;
-  $('#editBtn').onclick = handleEditProfile;
-  $('#settingsBtn').onclick = () => { closeTopMenu(); showPrivacyInfo(); };
-  $('#privacyBtn').onclick = () => { closeTopMenu(); showPrivacyInfo(); };
+  const menuProf = $('#menuProfile');
+  if (menuProf) {
+    menuProf.onclick = () => {
+      closeTopMenu();
+      openViewProfileModal(() => openEditProfileModal(onProfileUpdated));
+    };
+  }
+
+  const menuPersonal = $('#menuPersonal');
+  if (menuPersonal) {
+    menuPersonal.onclick = () => {
+      closeTopMenu();
+      openPersonalInfoModal(onProfileUpdated);
+    };
+  }
+
+  const editBtn = $('#editBtn');
+  if (editBtn) {
+    editBtn.onclick = () => {
+      closeTopMenu();
+      openEditProfileModal(onProfileUpdated);
+    };
+  }
+
+  const settingsBtn = $('#settingsBtn');
+  if (settingsBtn) {
+    settingsBtn.onclick = () => {
+      closeTopMenu();
+      switchView('Profile');
+    };
+  }
+
+  const privacyBtn = $('#privacyBtn');
+  if (privacyBtn) {
+    privacyBtn.onclick = () => {
+      closeTopMenu();
+      showPrivacyInfo();
+    };
+  }
+
   const btnLearnPriv = $('#btnLearnPrivacy');
   if (btnLearnPriv) btnLearnPriv.onclick = () => showPrivacyInfo();
-  $('#logoutBtn').onclick = async () => {
-    closeTopMenu();
-    await logoutUser();
-    $('#appScreen').classList.add('hidden');
-    $('#authScreen').classList.remove('hidden');
-    showAuthScreen('loginPanel');
-    toast('Logged out safely.');
-  };
+
+  const logoutBtn = $('#logoutBtn');
+  if (logoutBtn) {
+    logoutBtn.onclick = async () => {
+      closeTopMenu();
+      if (!confirm('Sign out of your MediKey account?')) return;
+      await logoutUser();
+      $('#appScreen').classList.add('hidden');
+      $('#authScreen').classList.remove('hidden');
+      showAuthScreen('loginPanel');
+      toast('Logged out safely.');
+    };
+  }
 
   // Accidental SOS Protection: Opens confirmation action sheet
   $('#sosCallBtn').onclick = e => {
@@ -983,7 +1086,7 @@ function initEventListeners() {
       const refreshCounts = () => updateRecordTileCounts(getDocumentCounts());
 
       switch (sec) {
-        case 'Personal Information': handleEditProfile(); break;
+        case 'Personal Information': openViewProfileModal(() => openEditProfileModal(onProfileUpdated)); break;
         case 'Medical Records': openDocumentSection('Hospital & Medical Records', 'medical', 'Store discharge summaries and records.', refreshCounts); break;
         case 'Medical History': openMedicalHistoryModal(refreshCounts); break;
         case 'Prescriptions': openPrescriptionsModal(refreshCounts); break;
@@ -1072,8 +1175,8 @@ function showPrivacyInfo() {
     `
     <div style="display: grid; gap: 10px; font-size: 0.88rem; line-height: 1.6;">
       <div class="notice" style="margin: 0; background: var(--teal-50); border-color: var(--primary-border); color: var(--teal-900);">
-        <strong>⚡ Bank-Grade Healthcare Architecture:</strong><br>
-        Organized into clean native ES modules with 256-bit AES encryption, strict Row-Level data isolation, and private cloud storage buckets.
+        <strong>⚡ Secure Healthcare Architecture:</strong><br>
+        Organized into clean modular components, encrypted in transit, with strict patient data isolation and secure cloud storage.
       </div>
       <ul style="margin: 0; padding-left: 20px;">
         <li><strong>Responsive Healthcare Design:</strong> Balanced desktop multi-column dashboard, mobile bottom navigation bar, touch targets $\ge 44\text{px}$, and safe-area insets.</li>
@@ -1100,8 +1203,27 @@ async function bootstrap() {
     });
   }
 
+  // Supabase auth state change listener for PASSWORD_RECOVERY
+  if (supabase) {
+    supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        isRecoverySessionActive = true;
+        $('#splashScreen')?.classList.add('hidden');
+        $('#authScreen').classList.remove('hidden');
+        $('#appScreen').classList.add('hidden');
+        showAuthScreen('updatePasswordPanel');
+        toast('Please set your new secure password.');
+      }
+    });
+  }
+
   // Handle incoming hash routing
   handleUrlRouting();
+
+  // If a password recovery session is active, keep user on updatePasswordPanel
+  if (isRecoverySessionActive) {
+    return;
+  }
 
   // Check active Supabase session
   const user = await getSessionUser();

@@ -1,6 +1,6 @@
 /**
  * MediKey | Authentication & Session Management (auth.js)
- * Clean, production-hardened Supabase Auth module with rate-limit defense & user-friendly error translations.
+ * Clean, production-hardened Auth module with rate-limit defense & user-friendly error translations.
  */
 
 import { supabase } from './supabase-client.js';
@@ -48,7 +48,7 @@ export function hideAuthAlert() {
 }
 
 /**
- * Translates raw Supabase technical errors into patient-friendly, helpful guidance.
+ * Translates raw backend errors into patient-friendly, helpful guidance.
  */
 export function formatAuthError(error) {
   if (!error) return 'An unexpected authentication error occurred. Please try again.';
@@ -58,7 +58,7 @@ export function formatAuthError(error) {
   const status = error.status;
 
   if (status === 429 || code === 'over_email_send_rate_limit' || msg.includes('rate limit') || msg.includes('too many requests')) {
-    return 'Too many email requests. Please try again later.';
+    return 'Too many email requests. Please wait a few minutes before trying again.';
   }
 
   if (msg.includes('user already registered') || code === 'user_already_exists') {
@@ -74,11 +74,11 @@ export function formatAuthError(error) {
   }
 
   if (msg.includes('password should be at least') || msg.includes('weak password')) {
-    return 'Password is too weak. Please provide at least 6 characters.';
+    return 'Password must be at least 6 characters.';
   }
 
   if (msg.includes('failed to fetch') || msg.includes('network')) {
-    return 'Unable to reach the MediKey cloud service. Please check your internet connection.';
+    return 'Unable to reach the MediKey healthcare service. Please check your internet connection.';
   }
 
   return error.message || 'Authentication request could not be processed.';
@@ -99,7 +99,7 @@ export async function getSessionUser() {
 }
 
 export async function registerUser(name, email, password, language = 'en') {
-  if (!supabase) throw new Error('Supabase client is not available.');
+  if (!supabase) throw new Error('Authentication service is currently unavailable.');
 
   const siteOrigin = window.location.origin;
   const redirectTarget = `${siteOrigin}/`;
@@ -157,7 +157,7 @@ export async function registerUser(name, email, password, language = 'en') {
 }
 
 export async function loginUser(email, password) {
-  if (!supabase) throw new Error('Supabase client is not available.');
+  if (!supabase) throw new Error('Authentication service is currently unavailable.');
 
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
@@ -179,7 +179,7 @@ export async function loginUser(email, password) {
 }
 
 export async function requestPasswordReset(email) {
-  if (!supabase) throw new Error('Supabase client is not available.');
+  if (!supabase) throw new Error('Authentication service is currently unavailable.');
 
   const redirectUrl = `${window.location.origin}/#type=recovery`;
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -202,7 +202,7 @@ export async function requestPasswordReset(email) {
     <div style="text-align: center; padding: 12px 6px;">
       <div style="font-size: 2.5rem; margin-bottom: 12px;">📬</div>
       <h3>Check Your Inbox</h3>
-      <p class="muted">If an account exists for <strong>${escapeHTML(email)}</strong>, a secure password recovery link has been dispatched.</p>
+      <p class="muted">If an account exists with this email address, a password recovery link has been dispatched.</p>
       <p>Click the link in the email to return to MediKey and configure your new password.</p>
       <button class="btn primary" id="btnBackToLoginAfterReset" type="button" style="margin-top: 14px;">Return to Login</button>
     </div>
@@ -216,7 +216,7 @@ export async function requestPasswordReset(email) {
 }
 
 export async function updatePassword(newPassword) {
-  if (!supabase) throw new Error('Supabase client is not available.');
+  if (!supabase) throw new Error('Authentication service is currently unavailable.');
   const { error } = await supabase.auth.updateUser({ password: newPassword });
   if (error) {
     throw new Error(formatAuthError(error));
